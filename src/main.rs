@@ -1,3 +1,26 @@
+use clap::Parser;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, about = "CLI tool to manage mentees", long_about = None, name = "Mentee CLI")]
+struct Args {
+    /// Name of the mentee
+    #[arg(short, long)]
+    name: String,
+    // how to make this optional?
+
+    // /// Number of times to greet
+    // #[arg(short, long, default_value_t = 1)]
+    // count: u8,
+}
+
 fn main() {
-    println!("Hello, world!");
+    let args = Args::parse();
+
+    // for _ in 0..args.count {
+    println!("Hello {}!", args.name);
+    // }
+
+    // TODO: if name arg then fetch that mentee
+    // else just render entire table
 }
