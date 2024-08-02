@@ -6,9 +6,7 @@ use clap::Parser;
 struct Args {
     /// Name of the mentee
     #[arg(short, long)]
-    name: String,
-    // how to make this optional?
-
+    name: Option<String>,
     // /// Number of times to greet
     // #[arg(short, long, default_value_t = 1)]
     // count: u8,
@@ -18,9 +16,21 @@ fn main() {
     let args = Args::parse();
 
     // for _ in 0..args.count {
-    println!("Hello {}!", args.name);
+    // println!("Hello {:?}!", args.name);
     // }
 
+    match args.name {
+        Some(name) => println!("Hello {}", name),
+        None => println!("No name provided"),
+    }
+    //
+    //
+    //
+    // if (args.name) {
+    //     println!("Hello {:?}!", args.name);
+    // } else {
+    //     println!("No name given");
+    // }
     // TODO: if name arg then fetch that mentee
     // else just render entire table
 }
