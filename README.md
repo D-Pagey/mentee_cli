@@ -4,3 +4,5 @@
 - [ ] Create dummy data const and compile
 - [ ] Render a table
 - [ ] Check all videos for tips
+- [ ] how to set the word that calls the CLI in the terminal? `cargo install`?
+- [ ] just running `mentees` should show help subcommand, same for `mentees create`

@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.13", features = ["derive"] }
+cli-table = "0.4.9"
