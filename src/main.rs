@@ -1,5 +1,6 @@
 use clap::Parser;
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
+use rusqlite::{Connection, Result};
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -10,7 +11,24 @@ struct Args {
     name: Option<String>,
 }
 
-fn main() {
+// struct Mentee {
+//     id: i32,
+//     name: String,
+//     calls_per_month: i32,
+// }
+
+fn main() -> Result<()> {
+    let conn = Connection::open("mentees.db")?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS mentee (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            calls_per_month INTEGER
+        )",
+        (),
+    )?;
+
     let args = Args::parse();
 
     let table = vec![
@@ -35,4 +53,6 @@ fn main() {
         Some(name) => println!("Hello {}", name),
         None => print_stdout(table).expect("Error reading table"),
     }
+
+    Ok(())
 }
