@@ -19,5 +19,9 @@
 - [ ] `name`, `calls/month`, `gross`, `net`, `status` (warm, cold, hot), `payment_date`
 - [ ] help section for each commmand and subcommand
 - [ ] https://clig.dev/
+- [ ] every action has a confirmation e.g. Alex was created / Alex was deleted
+- [ ] flags over args
+- [ ] `mentee_cli init` works out if there is a db or not
+- [ ] if init hasn't been run, then runs init first
 
 
