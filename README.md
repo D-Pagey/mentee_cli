@@ -23,5 +23,7 @@
 - [ ] flags over args
 - [ ] `mentee_cli init` works out if there is a db or not
 - [ ] if init hasn't been run, then runs init first
-
+- https://github.com/mikaelmello/inquire
+- https://github.com/shuttle-hq/shuttle/tree/main/cargo-shuttle (example project)
+- https://github.com/orhun/git-cliff (example project)
 

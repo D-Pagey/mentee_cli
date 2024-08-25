@@ -1,7 +1,8 @@
 [package]
-name = "mentee_cli"
+name = "mentees"
 version = "0.1.0"
 edition = "2021"
+description = "CLI to manage mentees"
 
 [dependencies]
 clap = { version = "4.5.13", features = ["derive"] }
