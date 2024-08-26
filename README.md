@@ -41,3 +41,6 @@ This pattern is about separating concerns: main.rs handles running the program, 
 
 - [ ] deal with notes in obisidan
 - [ ] error handling - same as minigrep project print to stderr not stdout
+- [ ] does this work if you run the cli from different working directories? when installing in prod, is this gna create multiple dbs?
+- [ ] post on reddit learnrust subreddit for code review and find a discord for learning rust 
+- [ ] run strict formatter, clippy?
