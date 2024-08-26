@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use rusqlite::Connection;
 use std::error::Error;
 
 /// CLI to manage state of mentees
@@ -11,6 +12,8 @@ struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
+    /// Show all mentees
+    Show,
     /// Creates a new mentee
     Create,
     /// Deletes an existing mentee
@@ -18,13 +21,21 @@ enum Commands {
 }
 
 // TODO: is there a better error type
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::Show => get_all_mentees(&conn),
         Commands::Create => println!("Creating a new mentee"),
         Commands::Delete => println!("Deleting a mentee..."),
     }
 
     Ok(())
+}
+
+fn get_all_mentees(conn: &Connection) {
+    match conn.execute("SELECT * FROM mentee", []) {
+        Ok(result) => println!("{}", result),
+        Err(err) => println!("update failed: {}", err),
+    }
 }

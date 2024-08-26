@@ -1,28 +1,26 @@
+use rusqlite::{Connection, Result};
 use std::process;
 
-fn main() {
-    // check if db exists
-    // if not prompt user for a path for db
-    // provide option to cancel
-    // pass db connection to run function? or pass db path?
+fn main() -> Result<()> {
+    let conn = Connection::open("mentees.db")?;
+    println!("connected to database at mentees.db");
 
-    if let Err(e) = mentees::run() {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS mentee (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        calls_per_month INTEGER
+    )",
+        (),
+    )?;
+
+    if let Err(e) = mentees::run(conn) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
-}
 
-// TODO: move this to a build type function or a ::new?
-// let conn = Connection::open("mentees.db")?;
-//
-// conn.execute(
-//     "CREATE TABLE IF NOT EXISTS mentee (
-//         id INTEGER PRIMARY KEY,
-//         name TEXT NOT NULL,
-//         calls_per_month INTEGER
-//     )",
-//     (),
-// )?;
+    Ok(())
+}
 
 // println!("{:?}", args)
 
@@ -49,7 +47,6 @@ fn main() {
 // }
 //
 // use clitable::{format::Justify, print_stdout, Cell, Style, Table};
-// use rusqlite::{Connection, Result};
 
 // struct Mentee {
 //     id: i32,
