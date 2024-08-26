@@ -27,3 +27,15 @@
 - https://github.com/shuttle-hq/shuttle/tree/main/cargo-shuttle (example project)
 - https://github.com/orhun/git-cliff (example project)
 
+## Questions
+- should main handle db connection or lib?
+- should run be passed the connection or the path to create its own connection?
+
+>>> The responsibilities that remain in the main function after this process should be limited to the following:
+
+Calling the command line parsing logic with the argument values
+Setting up any other configuration
+Calling a run function in lib.rs
+Handling the error if run returns an error
+This pattern is about separating concerns: main.rs handles running the program, and lib.rs handles all the logic of the task at hand. Because you can’t test the main function directly, this structure lets you test all of your program’s logic by moving it into functions in lib.rs. The code that remains in main.rs will be small enough to verify its correctness by reading it. Let’s rework our program by following this process.
+

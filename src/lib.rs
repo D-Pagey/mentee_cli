@@ -17,6 +17,7 @@ enum Commands {
     Delete,
 }
 
+// TODO: is there a better error type
 pub fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
@@ -24,5 +25,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         Commands::Create => println!("Creating a new mentee"),
         Commands::Delete => println!("Deleting a mentee..."),
     }
+
     Ok(())
 }
