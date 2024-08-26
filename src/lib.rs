@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use cli_table::{format::Justify, Cell, Style, Table};
 use rusqlite::{Connection, Result};
 use std::error::Error;
 
@@ -48,32 +49,39 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
         })
     })?;
 
-    let _table: Vec<Mentee> = Vec::new();
+    let mut mentees: Vec<Mentee> = Vec::new();
 
-    for mentee in mentee_iter {
-        println!("Found mentee {:?}", mentee.unwrap());
-        // table.push(mentee)
+    for mentee_result in mentee_iter {
+        mentees.push(mentee_result?)
     }
 
-    // let table = vec![
-    //     vec!["AA".cell(), "1 year".cell().justify(Justify::Right)],
-    //     vec!["MD".cell(), "6 months".cell().justify(Justify::Right)],
-    //     vec!["MS".cell(), "3 months".cell().justify(Justify::Right)],
-    //     vec!["PM".cell(), "5 months".cell().justify(Justify::Right)],
-    //     vec!["AL".cell(), "8 months".cell().justify(Justify::Right)],
-    //     vec!["DG".cell(), "4 months".cell().justify(Justify::Right)],
-    // ]
-    // .table()
-    // .title(vec![
-    //     "Initials".cell().bold(true),
-    //     "Duration".cell().bold(true),
-    // ])
-    // .bold(true);
-    // assert!(print_stdout(table).is_ok());
+    let table = mentees
+        .into_iter()
+        .map(|mentee| {
+            vec![
+                mentee.name.cell(),
+                mentee.calls_per_month.cell().justify(Justify::Right),
+            ]
+        })
+        .table()
+        .title(vec![
+            "Name".cell().bold(true),
+            "Calls / Month".cell().bold(true),
+        ])
+        .bold(true);
+
+    // TODO: change unwrap to handle error
+    let table_display = table.display().unwrap();
+
+    println!("{}", table_display);
+
     Ok(())
 }
 
 fn create_mentee(conn: &Connection) -> Result<()> {
+    // ::build vs ::new
+    // the struct implementation validates the number of calls
+    // returns valid error message i.e too many calls
     let mentee = Mentee {
         name: "alex".to_string(),
         calls_per_month: 2,
