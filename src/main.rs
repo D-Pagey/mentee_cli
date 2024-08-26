@@ -1,25 +1,6 @@
-use clap::{Parser, Subcommand};
+use std::process;
 // use clitable::{format::Justify, print_stdout, Cell, Style, Table};
 // use rusqlite::{Connection, Result};
-
-/// CLI to manage state of mentees
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None, name = "Mentee CLI")]
-struct Cli {
-    // Name of the mentee
-    //     #[arg(short, long)]
-    //     name: Option<String>,
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand, Debug, Clone)]
-enum Commands {
-    /// Creates a new mentee
-    Create,
-    /// Deletes an existing mentee
-    Delete,
-}
 
 // struct Mentee {
 //     id: i32,
@@ -27,6 +8,9 @@ enum Commands {
 //     calls_per_month: i32,
 // }
 
+// Name of the mentee
+//     #[arg(short, long)]
+//     name: Option<String>,
 // TODO: decide on error type
 fn main() {
     // TODO: move this to a build type function or a ::new?
@@ -41,14 +25,7 @@ fn main() {
     //     (),
     // )?;
 
-    let cli = Cli::parse();
-
     // println!("{:?}", args)
-
-    match cli.command {
-        Commands::Create => println!("Creating a new mentee"),
-        Commands::Delete => println!("Deleting a mentee..."),
-    }
 
     // let table = vec![
     //     vec!["AA".cell(), "1 year".cell().justify(Justify::Right)],
@@ -73,5 +50,8 @@ fn main() {
     //     None => print_stdout(table).expect("Error reading table"),
     // }
 
-    // Ok(())
+    if let Err(e) = mentees::run() {
+        eprintln!("Application error: {e}");
+        process::exit(1);
+    }
 }
