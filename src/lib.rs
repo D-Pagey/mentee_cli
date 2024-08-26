@@ -18,17 +18,18 @@ enum Commands {
     /// Creates a new mentee
     Create,
     /// Deletes an existing mentee
-    Delete,
+    Delete { name: String },
 }
 
-// TODO: is there a better error type
+// TODO: is there a better / or more accurate error type
 pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
+    // TODO: should these handle the errors themselves or deal with them?
     match cli.command {
         Commands::Show => get_all_mentees(&conn)?,
         Commands::Create => create_mentee(&conn)?,
-        Commands::Delete => println!("Deleting a mentee..."),
+        Commands::Delete { name } => delete_mentee(&conn, name),
     }
 
     Ok(())
@@ -95,4 +96,20 @@ fn create_mentee(conn: &Connection) -> Result<()> {
     println!("mentee created");
 
     Ok(())
+}
+
+fn delete_mentee(conn: &Connection, name: String) {
+    match conn.execute(
+        "DELETE FROM mentee WHERE name = :name",
+        &[(":name", &name.to_lowercase())],
+    ) {
+        Ok(deleted) => {
+            if deleted == 0 {
+                println!("There are no mentees by the name of {name}");
+            } else {
+                println!("Deleted all mentees called {name} ({deleted})");
+            }
+        }
+        Err(error) => eprintln!("Error deleting {name} - {error}"),
+    }
 }

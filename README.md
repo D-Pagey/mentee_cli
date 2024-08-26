@@ -44,3 +44,4 @@ This pattern is about separating concerns: main.rs handles running the program, 
 - [ ] does this work if you run the cli from different working directories? when installing in prod, is this gna create multiple dbs?
 - [ ] post on reddit learnrust subreddit for code review and find a discord for learning rust 
 - [ ] run strict formatter, clippy?
+- [ ] ensure help for each command and subcommand
