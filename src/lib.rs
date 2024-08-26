@@ -35,18 +35,16 @@ pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
 
 #[derive(Debug)]
 struct Mentee {
-    id: i32,
     name: String,
     calls_per_month: i32,
 }
 
 fn get_all_mentees(conn: &Connection) -> Result<()> {
-    let mut stmt = conn.prepare("SELECT id, name, calls_per_month FROM mentee")?;
+    let mut stmt = conn.prepare("SELECT name, calls_per_month FROM mentee")?;
     let mentee_iter = stmt.query_map([], |row| {
         Ok(Mentee {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            calls_per_month: row.get(2)?,
+            name: row.get(0)?,
+            calls_per_month: row.get(1)?,
         })
     })?;
 
@@ -76,15 +74,14 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
 }
 
 fn create_mentee(conn: &Connection) -> Result<()> {
-    let alex = Mentee {
-        id: 0,
+    let mentee = Mentee {
         name: "alex".to_string(),
         calls_per_month: 2,
     };
 
     conn.execute(
         "INSERT INTO mentee (name, calls_per_month) VALUES (?1, ?2)",
-        (&alex.name, &alex.calls_per_month),
+        (&mentee.name, &mentee.calls_per_month),
     )?;
 
     println!("mentee created");

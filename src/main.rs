@@ -3,7 +3,6 @@ use std::process;
 
 fn main() -> Result<()> {
     let conn = Connection::open("mentees.db")?;
-    println!("connected to database at mentees.db");
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS mentee (
