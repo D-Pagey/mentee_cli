@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use cli_table::{format::Justify, Cell, Style, Table};
+use inquire::Text;
 use rusqlite::{Connection, Result};
 use std::error::Error;
 
@@ -15,8 +16,8 @@ struct Cli {
 enum Commands {
     /// Show all mentees
     Show,
-    /// Creates a new mentee
-    Create,
+    /// adds a new mentee
+    Add,
     /// Deletes an existing mentee
     Delete { name: String },
 }
@@ -28,7 +29,7 @@ pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
     // TODO: should these handle the errors themselves or deal with them?
     match cli.command {
         Commands::Show => get_all_mentees(&conn)?,
-        Commands::Create => create_mentee(&conn)?,
+        Commands::Add => add_mentee(&conn)?,
         Commands::Delete { name } => delete_mentee(&conn, name),
     }
 
@@ -79,21 +80,37 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn create_mentee(conn: &Connection) -> Result<()> {
+fn add_mentee(_conn: &Connection) -> Result<()> {
+    let name = Text::new("What is their name?").prompt();
+
+    match name {
+        Ok(name) => println!("Your name is being published...{}", name),
+        Err(err) => println!("Error while publishing...{}", err),
+    }
+
+    // TODO: add validator to parse to number then check max calls
+
+    // how to use the parsing_u32
+    let calls = Text::new("How many calls per month do they have?").prompt();
+
+    match calls {
+        Ok(calls) => println!("Your calls is being published...{}", calls),
+        Err(err) => println!("Error while publishing...{}", err),
+    }
     // ::build vs ::new
     // the struct implementation validates the number of calls
     // returns valid error message i.e too many calls
-    let mentee = Mentee {
-        name: "alex".to_string(),
-        calls_per_month: 2,
-    };
-
-    conn.execute(
-        "INSERT INTO mentee (name, calls_per_month) VALUES (?1, ?2)",
-        (&mentee.name, &mentee.calls_per_month),
-    )?;
-
-    println!("mentee created");
+    // let mentee = Mentee {
+    //     name: "alex".to_string(),
+    //     calls_per_month: 2,
+    // };
+    //
+    // conn.execute(
+    //     "INSERT INTO mentee (name, calls_per_month) VALUES (?1, ?2)",
+    //     (&mentee.name, &mentee.calls_per_month),
+    // )?;
+    //
+    // println!("mentee addd");
 
     Ok(())
 }

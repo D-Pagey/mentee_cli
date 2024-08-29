@@ -7,4 +7,5 @@ description = "CLI to manage mentees"
 [dependencies]
 clap = { version = "4.5.13", features = ["derive"] }
 cli-table = "0.4.9"
+inquire = "0.7.5"
 rusqlite = { version = "0.32.0", features = ["bundled"] }
