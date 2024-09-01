@@ -8,7 +8,7 @@ fn main() -> Result<()> {
         "CREATE TABLE IF NOT EXISTS mentee (
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        calls_per_month INTEGER
+        calls INTEGER
     )",
         (),
     )?;

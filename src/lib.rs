@@ -39,15 +39,15 @@ pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
 #[derive(Debug)]
 struct Mentee {
     name: String,
-    calls_per_month: i32,
+    calls: u32,
 }
 
 fn get_all_mentees(conn: &Connection) -> Result<()> {
-    let mut stmt = conn.prepare("SELECT name, calls_per_month FROM mentee")?;
+    let mut stmt = conn.prepare("SELECT name, calls FROM mentee")?;
     let mentee_iter = stmt.query_map([], |row| {
         Ok(Mentee {
             name: row.get(0)?,
-            calls_per_month: row.get(1)?,
+            calls: row.get(1)?,
         })
     })?;
 
@@ -62,7 +62,7 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
         .map(|mentee| {
             vec![
                 mentee.name.cell(),
-                mentee.calls_per_month.cell().justify(Justify::Right),
+                mentee.calls.cell().justify(Justify::Right),
             ]
         })
         .table()
@@ -80,37 +80,39 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn add_mentee(_conn: &Connection) -> Result<()> {
-    let name = Text::new("What is their name?").prompt();
+// TODO: remove unwraps, deal with ? for conn.execute, add error to result type
+fn add_mentee(conn: &Connection) -> Result<()> {
+    let name = Text::new("What is their name?").prompt().unwrap();
+    let calls = inquire::prompt_u32("How many calls per month do they have?").unwrap();
 
-    match name {
-        Ok(name) => println!("Your name is being published...{}", name),
-        Err(err) => println!("Error while publishing...{}", err),
-    }
+    let mentee = Mentee { name, calls };
+
+    conn.execute(
+        "INSERT INTO mentee (name, calls) VALUES (?1, ?2)",
+        (&mentee.name, &mentee.calls),
+    )?;
+
+    println!("{} added", mentee.name);
+
+    // match name {
+    //     Ok(name) => println!("Your name is being published...{}", name),
+    //     Err(err) => println!("Error while publishing...{}", err),
+    // }
 
     // TODO: add validator to parse to number then check max calls
 
     // how to use the parsing_u32
-    let calls = Text::new("How many calls per month do they have?").prompt();
+    // let calls = Text::new("How many calls per month do they have?").prom
 
-    match calls {
-        Ok(calls) => println!("Your calls is being published...{}", calls),
-        Err(err) => println!("Error while publishing...{}", err),
-    }
+    // match calls {
+    //     Ok(calls) => println!("Your calls is being published...{}", calls),
+    //     Err(err) => println!("Error while publishing...{}", err),
+    // }
     // ::build vs ::new
     // the struct implementation validates the number of calls
     // returns valid error message i.e too many calls
-    // let mentee = Mentee {
-    //     name: "alex".to_string(),
-    //     calls_per_month: 2,
-    // };
     //
-    // conn.execute(
-    //     "INSERT INTO mentee (name, calls_per_month) VALUES (?1, ?2)",
-    //     (&mentee.name, &mentee.calls_per_month),
-    // )?;
     //
-    // println!("mentee addd");
 
     Ok(())
 }

@@ -45,3 +45,4 @@ This pattern is about separating concerns: main.rs handles running the program, 
 - [ ] post on reddit learnrust subreddit for code review and find a discord for learning rust 
 - [ ] run strict formatter, clippy?
 - [ ] ensure help for each command and subcommand
+- [ ] add colorize to color text
