@@ -1,7 +1,5 @@
 ## To Do
 - [x] How to run using the name e.g. `mentee` rather than `cargo run`? currently building to `target/debug` then running it like `./mentee_cli`
-- [x] Create dummy data const and compile
-- [x] Render a table
 - [x] how to set the word that calls the CLI in the terminal? `cargo install`?
 - [ ] `default_value_t` why `t`?
 - [ ] Check all videos for tips

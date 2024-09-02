@@ -16,9 +16,11 @@ struct Cli {
 enum Commands {
     /// Show all mentees
     Show,
-    /// adds a new mentee
+    /// Adds a new mentee
     Add,
-    /// Deletes an existing mentee
+    /// Updates an existing mentee
+    Update { name: String },
+    /// Deletes a mentee
     Delete { name: String },
 }
 
@@ -30,6 +32,7 @@ pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
     match cli.command {
         Commands::Show => get_all_mentees(&conn)?,
         Commands::Add => add_mentee(&conn)?,
+        Commands::Update { name } => update_mentee(&conn, name),
         Commands::Delete { name } => delete_mentee(&conn, name),
     }
 
@@ -82,8 +85,15 @@ fn get_all_mentees(conn: &Connection) -> Result<()> {
 
 // TODO: remove unwraps, deal with ? for conn.execute, add error to result type
 fn add_mentee(conn: &Connection) -> Result<()> {
-    let name = Text::new("What is their name?").prompt().unwrap();
-    let calls = inquire::prompt_u32("How many calls per month do they have?").unwrap();
+    // TODO: why Text::new over inquire.prompt
+    let name = Text::new("What is their name?")
+        .prompt()
+        // TODO: unwrap, unwrap or else, expect, ?, whats the best?
+        // should this pass the error upto handle since they all
+        // are as bad as each other?
+        .expect("Failed to capture mentee name");
+    let calls = inquire::prompt_u32("How many calls per month do they have?")
+        .expect("Failed to capture mentee calls");
 
     let mentee = Mentee { name, calls };
 
@@ -131,4 +141,8 @@ fn delete_mentee(conn: &Connection, name: String) {
         }
         Err(error) => eprintln!("Error deleting {name} - {error}"),
     }
+}
+
+fn update_mentee(_conn: &Connection, name: String) {
+    println!("Updating...{name}")
 }
