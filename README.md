@@ -44,3 +44,4 @@ This pattern is about separating concerns: main.rs handles running the program, 
 - [ ] run strict formatter, clippy?
 - [ ] ensure help for each command and subcommand
 - [ ] add colorize to color text
+- [ ] ensure either name is unique or/and that only update one record at a time
