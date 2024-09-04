@@ -1,13 +1,14 @@
+mod cli;
 mod constants;
+mod error;
 mod mentee;
 mod mentee_service;
 
 use clap::{Parser, Subcommand};
-use cli_table::{format::Justify, Cell, Style, Table};
-use rusqlite::Result;
-use std::error::Error;
-
+use cli::render_mentees_table;
+use error::MenteeError;
 use mentee_service::MenteeService;
+use rusqlite::Result;
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
@@ -29,46 +30,52 @@ enum Commands {
     Delete { name: String },
 }
 
-// TODO: is there a better / or more accurate error type
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run() -> Result<(), MenteeError> {
     let database_url = "mentees.db";
     let mentee_service = MenteeService::new(database_url)?;
 
     let cli = Cli::parse();
 
-    // TODO: should these handle the errors themselves or deal with them?
-    // TODO: service should return what needs rendering
     match cli.command {
         Commands::List => {
-            let mentees = mentee_service.get_all_mentees()?;
+            let result = mentee_service.get_all_mentees();
 
-            let table = mentees
-                .into_iter()
-                .map(|mentee| {
-                    vec![
-                        mentee.name.cell(),
-                        mentee.calls.cell().justify(Justify::Right),
-                    ]
-                })
-                .table()
-                .title(vec![
-                    "Name".cell().bold(true),
-                    "Calls / Month".cell().bold(true),
-                ])
-                .bold(true);
+            match result {
+                Ok(mentees) => {
+                    let render_result = render_mentees_table(mentees);
 
-            // TODO: change unwrap to handle error
-            let table_display = table.display().unwrap();
-
-            println!("{}", table_display);
+                    match render_result {
+                        Ok(()) => (),
+                        Err(err) => eprintln!("{err}"),
+                    };
+                }
+                Err(err) => eprintln!("{err}"),
+            }
         }
         Commands::Add => {
-            let mentee = mentee_service.add_mentee()?;
-            println!("Added Mentee: {}", mentee.name);
+            let result = mentee_service.add_mentee();
+
+            match result {
+                Ok(mentee) => println!("Added Mentee: {}", mentee.name),
+                Err(err) => eprintln!("{err}"),
+            }
         }
-        Commands::Update { name } => mentee_service.update_mentee(name), // TODO: what should this return?
-        Commands::Delete { name } => mentee_service.delete_mentee(name),
-    }
+        Commands::Update { name } => {
+            let result = mentee_service.update_mentee(name); // TODO: what should this return?
+            match result {
+                Ok(updated) => println!("Updated Mentee: {}", updated),
+                Err(err) => eprintln!("{err}"),
+            }
+        }
+        Commands::Delete { name } => {
+            let result = mentee_service.delete_mentee(name);
+
+            match result {
+                Ok(deleted) => println!("Deleted Mentee: {}", deleted),
+                Err(err) => eprintln!("{err}"),
+            }
+        }
+    };
 
     Ok(())
 }
