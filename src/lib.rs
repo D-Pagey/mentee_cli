@@ -1,11 +1,12 @@
+mod constants;
+mod mentee;
+mod mentee_service;
+
 use clap::{Parser, Subcommand};
-use rusqlite::{Connection, Result};
+use rusqlite::Result;
 use std::error::Error;
 
-mod add_mentee;
-mod delete_mentee;
-mod get_mentees;
-mod update_mentee;
+use mentee_service::MenteeService;
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
@@ -17,8 +18,8 @@ struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
-    /// Show all mentees
-    Show,
+    /// List all mentees
+    List,
     /// Adds a new mentee
     Add,
     /// Updates an existing mentee
@@ -27,22 +28,23 @@ enum Commands {
     Delete { name: String },
 }
 
-#[derive(Debug)]
-pub struct Mentee {
-    name: String,
-    calls: u32,
-}
-
 // TODO: is there a better / or more accurate error type
-pub fn run(conn: Connection) -> Result<(), Box<dyn Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
+    let database_url = "mentees.db";
+    let mentee_service = MenteeService::new(database_url)?;
+
     let cli = Cli::parse();
 
     // TODO: should these handle the errors themselves or deal with them?
+    // TODO: service should return what needs rendering
     match cli.command {
-        Commands::Show => get_mentees::get_mentees(&conn)?,
-        Commands::Add => add_mentee::add_mentee(&conn)?,
-        Commands::Update { name } => update_mentee::update_mentee(&conn, name),
-        Commands::Delete { name } => delete_mentee::delete_mentee(&conn, name),
+        Commands::List => mentee_service.get_all_mentees()?,
+        Commands::Add => {
+            let mentee = mentee_service.add_mentee()?;
+            println!("Added Mentee: {}", mentee.name);
+        }
+        Commands::Update { name } => mentee_service.update_mentee(name), // TODO: what should this return?
+        Commands::Delete { name } => mentee_service.delete_mentee(name),
     }
 
     Ok(())
