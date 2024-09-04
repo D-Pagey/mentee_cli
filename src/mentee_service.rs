@@ -12,17 +12,16 @@ impl MenteeService {
     pub fn new(database_url: &str) -> Result<Self> {
         let conn = Connection::open(database_url)?;
 
-        println!("{}", constants::MENTEE_TABLE);
-
-        // TODO: make us of the public const for table
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS mentees (
+        let sql = format!(
+            "CREATE TABLE IF NOT EXISTS {} (
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         calls INTEGER
-    )",
-            (),
-        )?;
+        )",
+            constants::MENTEE_TABLE
+        );
+
+        conn.execute(&sql, ())?;
 
         Ok(MenteeService { conn })
     }
@@ -41,7 +40,10 @@ impl MenteeService {
         let mentee = Mentee { name, calls };
 
         self.conn.execute(
-            "INSERT INTO mentees (name, calls) VALUES (?1, ?2)",
+            &format!(
+                "INSERT INTO {} (name, calls) VALUES (?1, ?2)",
+                constants::MENTEE_TABLE
+            ),
             (&mentee.name, &mentee.calls),
         )?;
 
@@ -50,7 +52,7 @@ impl MenteeService {
 
     pub fn delete_mentee(&self, name: String) {
         match self.conn.execute(
-            "DELETE FROM mentees WHERE name = :name",
+            &format!("DELETE FROM {} WHERE name = :name", constants::MENTEE_TABLE),
             &[(":name", &name.to_lowercase())],
         ) {
             Ok(deleted) => {
@@ -70,7 +72,10 @@ impl MenteeService {
             .expect("Failed to capture mentee name");
 
         match self.conn.execute(
-            "UPDATE mentees SET calls = ?1 WHERE name = ?2",
+            &format!(
+                "UPDATE {} SET calls = ?1 WHERE name = ?2",
+                constants::MENTEE_TABLE
+            ),
             (&calls, &name),
         ) {
             Ok(updated) => println!("updated...{updated}"),
@@ -79,7 +84,8 @@ impl MenteeService {
     }
 
     pub fn get_all_mentees(&self) -> Result<Vec<Mentee>> {
-        let mut stmt = self.conn.prepare("SELECT name, calls FROM mentees")?;
+        let sql = format!("SELECT name, calls FROM {}", constants::MENTEE_TABLE);
+        let mut stmt = self.conn.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
             Ok(Mentee {
                 name: row.get(0)?,
