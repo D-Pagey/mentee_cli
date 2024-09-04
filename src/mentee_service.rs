@@ -1,7 +1,6 @@
 use crate::constants;
 use crate::mentee::Mentee;
 
-use cli_table::{format::Justify, Cell, Style, Table};
 use inquire::Text;
 use rusqlite::{Connection, Result};
 
@@ -79,7 +78,7 @@ impl MenteeService {
         }
     }
 
-    pub fn get_all_mentees(&self) -> Result<()> {
+    pub fn get_all_mentees(&self) -> Result<Vec<Mentee>> {
         let mut stmt = self.conn.prepare("SELECT name, calls FROM mentees")?;
         let mentee_iter = stmt.query_map([], |row| {
             Ok(Mentee {
@@ -94,27 +93,7 @@ impl MenteeService {
             mentees.push(mentee_result?)
         }
 
-        let table = mentees
-            .into_iter()
-            .map(|mentee| {
-                vec![
-                    mentee.name.cell(),
-                    mentee.calls.cell().justify(Justify::Right),
-                ]
-            })
-            .table()
-            .title(vec![
-                "Name".cell().bold(true),
-                "Calls / Month".cell().bold(true),
-            ])
-            .bold(true);
-
-        // TODO: change unwrap to handle error
-        let table_display = table.display().unwrap();
-
-        println!("{}", table_display);
-
-        Ok(())
+        Ok(mentees)
     }
 }
 

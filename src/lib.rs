@@ -3,6 +3,7 @@ mod mentee;
 mod mentee_service;
 
 use clap::{Parser, Subcommand};
+use cli_table::{format::Justify, Cell, Style, Table};
 use rusqlite::Result;
 use std::error::Error;
 
@@ -38,7 +39,29 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // TODO: should these handle the errors themselves or deal with them?
     // TODO: service should return what needs rendering
     match cli.command {
-        Commands::List => mentee_service.get_all_mentees()?,
+        Commands::List => {
+            let mentees = mentee_service.get_all_mentees()?;
+
+            let table = mentees
+                .into_iter()
+                .map(|mentee| {
+                    vec![
+                        mentee.name.cell(),
+                        mentee.calls.cell().justify(Justify::Right),
+                    ]
+                })
+                .table()
+                .title(vec![
+                    "Name".cell().bold(true),
+                    "Calls / Month".cell().bold(true),
+                ])
+                .bold(true);
+
+            // TODO: change unwrap to handle error
+            let table_display = table.display().unwrap();
+
+            println!("{}", table_display);
+        }
         Commands::Add => {
             let mentee = mentee_service.add_mentee()?;
             println!("Added Mentee: {}", mentee.name);
