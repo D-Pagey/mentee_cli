@@ -38,43 +38,25 @@ pub fn run() -> Result<(), MenteeError> {
 
     match cli.command {
         Commands::List => {
-            let result = mentee_service.get_all_mentees();
-
-            match result {
-                Ok(mentees) => {
-                    let render_result = render_mentees_table(mentees);
-
-                    match render_result {
-                        Ok(()) => (),
-                        Err(err) => eprintln!("{err}"),
-                    };
-                }
-                Err(err) => eprintln!("{err}"),
+            if let Err(err) = mentee_service
+                .get_all_mentees()
+                .and_then(render_mentees_table)
+            {
+                eprintln!("{err}");
             }
         }
-        Commands::Add => {
-            let result = mentee_service.add_mentee();
-
-            match result {
-                Ok(mentee) => println!("Added Mentee: {}", mentee.name),
-                Err(err) => eprintln!("{err}"),
-            }
-        }
-        Commands::Update { name } => {
-            let result = mentee_service.update_mentee(name); // TODO: what should this return?
-            match result {
-                Ok(updated) => println!("Updated Mentee: {}", updated),
-                Err(err) => eprintln!("{err}"),
-            }
-        }
-        Commands::Delete { name } => {
-            let result = mentee_service.delete_mentee(name);
-
-            match result {
-                Ok(deleted) => println!("Deleted Mentee: {}", deleted),
-                Err(err) => eprintln!("{err}"),
-            }
-        }
+        Commands::Add => match mentee_service.add_mentee() {
+            Ok(mentee) => println!("Added Mentee: {}", mentee.name),
+            Err(err) => eprintln!("{err}"),
+        },
+        Commands::Update { name } => match mentee_service.update_mentee(name) {
+            Ok(updated) => println!("Updated Mentee: {}", updated),
+            Err(err) => eprintln!("{err}"),
+        },
+        Commands::Delete { name } => match mentee_service.delete_mentee(name) {
+            Ok(deleted) => println!("Deleted Mentee: {}", deleted),
+            Err(err) => eprintln!("{err}"),
+        },
     };
 
     Ok(())
