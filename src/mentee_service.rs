@@ -14,10 +14,10 @@ impl MenteeService {
 
         let sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        calls INTEGER
-        )",
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL UNIQUE,
+            calls INTEGER
+            )",
             constants::MENTEE_TABLE
         );
 
