@@ -9,6 +9,7 @@ pub enum MenteeError {
     InquireError(inquire::InquireError),
     NotFound(String),
     InvalidInput(String),
+    UniqueViolation(String),
 }
 
 impl fmt::Display for MenteeError {
@@ -19,6 +20,9 @@ impl fmt::Display for MenteeError {
             MenteeError::InquireError(err) => write!(f, "Inquire error: {}", err),
             MenteeError::NotFound(resource) => write!(f, "{} not found", resource),
             MenteeError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
+            MenteeError::UniqueViolation(name) => {
+                write!(f, "Mentee with name '{}' already exists.", name)
+            }
         }
     }
 }

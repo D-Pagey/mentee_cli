@@ -34,15 +34,21 @@ impl MenteeService {
 
         let mentee = Mentee { name, calls };
 
-        self.conn.execute(
+        let result = self.conn.execute(
             &format!(
                 "INSERT INTO {} (name, calls) VALUES (?1, ?2)",
                 constants::MENTEE_TABLE
             ),
             (&mentee.name, &mentee.calls),
-        )?;
+        );
 
-        Ok(mentee)
+        match result {
+            Ok(_) => Ok(mentee),
+            Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
+                Err(MenteeError::UniqueViolation(mentee.name))
+            }
+            Err(err) => Err(MenteeError::from(err)),
+        }
     }
 
     pub fn delete_mentee(&self, name: String) -> Result<usize, MenteeError> {
