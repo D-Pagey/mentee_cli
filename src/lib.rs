@@ -4,7 +4,7 @@ mod error;
 mod mentee;
 mod mentee_service;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use cli::render_mentees_table;
 use error::MenteeError;
 use mentee_service::MenteeService;
@@ -28,6 +28,14 @@ enum Commands {
     Update { name: String },
     /// Deletes a mentee
     Delete { name: String },
+    /// Count or Sum a specified column
+    Count { column: ColumnOptions },
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum ColumnOptions {
+    Name,
+    Calls,
 }
 
 pub fn run() -> Result<(), MenteeError> {
@@ -55,6 +63,10 @@ pub fn run() -> Result<(), MenteeError> {
         },
         Commands::Delete { name } => match mentee_service.delete_mentee(name) {
             Ok(deleted) => println!("Deleted Mentee: {}", deleted),
+            Err(err) => eprintln!("{err}"),
+        },
+        Commands::Count { column } => match mentee_service.get_mentee_count(column) {
+            Ok(result) => println!("{result}"),
             Err(err) => eprintln!("{err}"),
         },
     };

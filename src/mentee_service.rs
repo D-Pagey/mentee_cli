@@ -1,3 +1,4 @@
+use crate::ColumnOptions;
 use crate::{constants, error::MenteeError};
 
 use crate::mentee::Mentee;
@@ -91,5 +92,16 @@ impl MenteeService {
         }
 
         Ok(mentees)
+    }
+
+    pub fn get_mentee_count(&self, count: ColumnOptions) -> Result<String, MenteeError> {
+        let (sql, message) = match count {
+            ColumnOptions::Name => ("SELECT COUNT(*) FROM mentees", "Number of mentees"),
+            ColumnOptions::Calls => ("SELECT SUM(calls) FROM mentees", "Number of calls"),
+        };
+
+        let result: i64 = self.conn.query_row(sql, [], |row| row.get(0))?;
+
+        Ok(format!("{}: {}", message, result))
     }
 }
