@@ -39,7 +39,7 @@ pub fn run() -> Result<(), MenteeError> {
     match cli.command {
         Commands::List => {
             if let Err(err) = mentee_service
-                .get_all_mentees()
+                .get_all_mentees_and_count()
                 .and_then(render_mentees_table)
             {
                 eprintln!("{err}");
