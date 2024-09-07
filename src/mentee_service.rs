@@ -1,8 +1,8 @@
 use crate::ColumnOptions;
 use crate::{constants, error::MenteeError};
 
-use crate::mentee::Mentee;
-use inquire::Text;
+use crate::mentee::{Mentee, Status};
+use inquire::{Select, Text};
 use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
@@ -21,8 +21,7 @@ impl MenteeService {
             gross INTEGER NOT NULL,
             net INTEGER NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
-            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31),
-            )",
+            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31))",
             constants::MENTEE_TABLE
         );
 
@@ -31,17 +30,25 @@ impl MenteeService {
         Ok(MenteeService { conn })
     }
 
+    fn select_status() -> Result<Status, MenteeError> {
+        // generate options from enum variants
+        let options = Status::variants();
+        let selected = Select::new("Select the mentee's status", options).prompt()?;
+
+        Status::from_str(&selected).ok_or_else(|| "Invalid status selected".into())
+    }
+
     // TODO: add validator to parse to number then check max calls
-    // how to use the parsing_u32
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
         let name = Text::new("What is their name?").prompt()?;
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
-        let status = Text::new("What is their status?").prompt()?; // TODO: add validation
+        let status = MenteeService::select_status()?;
         let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
 
         let mentee = Mentee {
+            id: 1,
             name,
             calls,
             gross,
@@ -52,10 +59,17 @@ impl MenteeService {
 
         let result = self.conn.execute(
             &format!(
-                "INSERT INTO {} (name, calls) VALUES (?1, ?2)",
+                "INSERT INTO {} (name, calls, gross, net, status, payment_day) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
                 constants::MENTEE_TABLE
             ),
-            (&mentee.name, &mentee.calls),
+            (
+                &mentee.name,
+                &mentee.calls,
+                &mentee.gross,
+                &mentee.net,
+                "warm",
+                &mentee.payment_day,
+            ),
         );
 
         match result {
@@ -91,12 +105,29 @@ impl MenteeService {
     }
 
     pub fn get_all_mentees(&self) -> Result<Vec<Mentee>, MenteeError> {
-        let sql = format!("SELECT name, calls FROM {}", constants::MENTEE_TABLE);
+        let sql = format!("SELECT * FROM {}", constants::MENTEE_TABLE);
         let mut stmt = self.conn.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
+            let status_str: String = row.get(5)?;
+
+            // TODO: fix this unwrap
+            let status = Status::from_str(&status_str).unwrap();
+            //     .ok_or_else(|| {
+            //     rusqlite::Error::FromSqlConversionFailure(
+            //         5,
+            //         std::any::TypeId::of::<Status>(),
+            //         Box::new(dyn std::error::Error + Send + Sync),
+            //     )
+            // })?;
+
             Ok(Mentee {
-                name: row.get(0)?,
-                calls: row.get(1)?,
+                id: row.get(0)?,
+                name: row.get(1)?,
+                calls: row.get(2)?,
+                gross: row.get(3)?,
+                net: row.get(4)?,
+                status,
+                payment_day: row.get(6)?,
             })
         })?;
 

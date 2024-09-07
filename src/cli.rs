@@ -9,6 +9,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             vec![
                 mentee.name.cell(),
                 mentee.calls.cell().justify(Justify::Right),
+                mentee.gross.cell().justify(Justify::Right),
+                mentee.net.cell().justify(Justify::Right),
+                mentee.payment_day.cell().justify(Justify::Right),
             ]
         })
         .collect();
@@ -18,6 +21,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
         .title(vec![
             "Name".cell().bold(true),
             "Calls / Month".cell().bold(true),
+            "Gross".cell().bold(true),
+            "Net".cell().bold(true),
+            "Payment Day".cell().bold(true),
         ])
         .foreground_color(Some(Color::Green))
         .bold(true);

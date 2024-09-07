@@ -10,6 +10,7 @@ pub enum MenteeError {
     NotFound(String),
     InvalidInput(String),
     UniqueViolation(String),
+    ValidationError(String),
 }
 
 impl fmt::Display for MenteeError {
@@ -20,6 +21,7 @@ impl fmt::Display for MenteeError {
             MenteeError::InquireError(err) => write!(f, "Inquire error: {}", err),
             MenteeError::NotFound(resource) => write!(f, "{} not found", resource),
             MenteeError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
+            MenteeError::ValidationError(msg) => write!(f, "Invalid input: {}", msg),
             MenteeError::UniqueViolation(name) => {
                 write!(f, "Mentee with name '{}' already exists.", name)
             }
@@ -42,5 +44,11 @@ impl From<io::Error> for MenteeError {
 impl From<inquire::InquireError> for MenteeError {
     fn from(err: inquire::InquireError) -> MenteeError {
         MenteeError::InquireError(err)
+    }
+}
+
+impl From<&str> for MenteeError {
+    fn from(message: &str) -> MenteeError {
+        MenteeError::ValidationError(message.to_string())
     }
 }
