@@ -3,8 +3,8 @@ use cli_table::{format::Justify, Cell, Color, Style, Table};
 use crate::{error::MenteeError, mentee::Mentee};
 
 // TODO: dont love these args, cleaner way?
-pub fn render_mentees_table((mentees, count): (Vec<Mentee>, i64)) -> Result<(), MenteeError> {
-    let mut rows: Vec<Vec<cli_table::CellStruct>> = mentees
+pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
+    let rows: Vec<Vec<cli_table::CellStruct>> = mentees
         .into_iter()
         .map(|mentee| {
             vec![
@@ -13,11 +13,6 @@ pub fn render_mentees_table((mentees, count): (Vec<Mentee>, i64)) -> Result<(), 
             ]
         })
         .collect();
-
-    rows.push(vec![
-        "Total".cell().bold(true),
-        count.to_string().cell().justify(Justify::Right).bold(true),
-    ]);
 
     let table = rows
         .table()

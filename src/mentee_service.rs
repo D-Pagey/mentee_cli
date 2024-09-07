@@ -74,7 +74,7 @@ impl MenteeService {
         Ok(updated)
     }
 
-    pub fn get_all_mentees_and_count(&self) -> Result<(Vec<Mentee>, i64), MenteeError> {
+    pub fn get_all_mentees(&self) -> Result<Vec<Mentee>, MenteeError> {
         let sql = format!("SELECT name, calls FROM {}", constants::MENTEE_TABLE);
         let mut stmt = self.conn.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
@@ -90,10 +90,6 @@ impl MenteeService {
             mentees.push(mentee_result?)
         }
 
-        let count: i64 = self
-            .conn
-            .query_row("SELECT COUNT(*) FROM mentees", [], |row| row.get(0))?;
-
-        Ok((mentees, count))
+        Ok(mentees)
     }
 }
