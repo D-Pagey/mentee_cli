@@ -29,12 +29,12 @@ enum Commands {
     /// Deletes a mentee
     Delete { name: String },
     /// Count or Sum a specified column
-    Count { column: ColumnOptions },
+    Count { column: Option<ColumnOptions> },
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum ColumnOptions {
-    Name,
+    Mentees,
     Calls,
 }
 

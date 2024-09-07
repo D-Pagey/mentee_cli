@@ -94,10 +94,10 @@ impl MenteeService {
         Ok(mentees)
     }
 
-    pub fn get_mentee_count(&self, count: ColumnOptions) -> Result<String, MenteeError> {
+    pub fn get_mentee_count(&self, count: Option<ColumnOptions>) -> Result<String, MenteeError> {
         let (sql, message) = match count {
-            ColumnOptions::Name => ("SELECT COUNT(*) FROM mentees", "Number of mentees"),
-            ColumnOptions::Calls => ("SELECT SUM(calls) FROM mentees", "Number of calls"),
+            Some(ColumnOptions::Calls) => ("SELECT SUM(calls) FROM mentees", "Number of calls"),
+            _ => ("SELECT COUNT(*) FROM mentees", "Number of mentees"),
         };
 
         let result: i64 = self.conn.query_row(sql, [], |row| row.get(0))?;
