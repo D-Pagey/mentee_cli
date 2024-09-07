@@ -17,7 +17,11 @@ impl MenteeService {
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
-            calls INTEGER
+            calls INTEGER,
+            gross INTEGER NOT NULL,
+            net INTEGER NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
+            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31),
             )",
             constants::MENTEE_TABLE
         );
@@ -32,8 +36,19 @@ impl MenteeService {
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
         let name = Text::new("What is their name?").prompt()?;
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
+        let gross = inquire::prompt_u32("What is the gross payment?")?;
+        let net = inquire::prompt_u32("What is the net payment?")?;
+        let status = Text::new("What is their status?").prompt()?; // TODO: add validation
+        let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
 
-        let mentee = Mentee { name, calls };
+        let mentee = Mentee {
+            name,
+            calls,
+            gross,
+            net,
+            status,
+            payment_day,
+        };
 
         let result = self.conn.execute(
             &format!(
