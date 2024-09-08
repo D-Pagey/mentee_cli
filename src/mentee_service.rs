@@ -1,5 +1,5 @@
-use crate::ColumnOptions;
 use crate::{constants, error::MenteeError};
+use crate::{ColumnOptions, UpdateMentee};
 
 use crate::mentee::{Mentee, Status};
 use inquire::{Select, Text};
@@ -88,10 +88,63 @@ impl MenteeService {
         Ok(deleted)
     }
 
-    pub fn update_mentee(&self, name: String) -> Result<usize, MenteeError> {
+    pub fn update_mentee_with_flags(
+        &self,
+        update_args: UpdateMentee,
+    ) -> Result<String, MenteeError> {
+        let mut updates = Vec::new();
+        let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
+        if let Some(new_name) = update_args.new_name {
+            updates.push("name = ?");
+            params.push(Box::new(new_name));
+        }
+
+        if let Some(calls) = update_args.calls {
+            updates.push("calls = ?");
+            params.push(Box::new(calls));
+        }
+
+        if let Some(gross) = update_args.gross {
+            updates.push("gross = ?");
+            params.push(Box::new(gross));
+        }
+
+        if let Some(net) = update_args.net {
+            updates.push("net = ?");
+            params.push(Box::new(net));
+        }
+
+        if let Some(status) = update_args.status {
+            updates.push("status = ?");
+            params.push(Box::new(status));
+        }
+
+        if let Some(payment_day) = update_args.payment_day {
+            updates.push("payment_day = ?");
+            params.push(Box::new(payment_day));
+        }
+
+        // Join updates and generate the SQL query
+        let updates_str = updates.join(", ");
+        let sql = format!("UPDATE mentees SET {} WHERE name = ?", updates_str);
+
+        // Convert the params into the correct type
+        let mut params_refs: Vec<&dyn rusqlite::ToSql> =
+            params.iter().map(|s| s.as_ref()).collect();
+
+        // Append the mentee's name as the last parameter.
+        params_refs.push(&update_args.name);
+
+        self.conn.execute(&sql, params_refs.as_slice())?;
+
+        Ok(format!("{} was updated", update_args.name))
+    }
+
+    pub fn update_mentee_interactive(&self, name: String) -> Result<String, MenteeError> {
         let calls = Text::new("How many calls per month do they have?").prompt()?;
 
-        let updated = self.conn.execute(
+        self.conn.execute(
             &format!(
                 "UPDATE {} SET calls = ?1 WHERE name = ?2",
                 constants::MENTEE_TABLE
@@ -99,7 +152,7 @@ impl MenteeService {
             (&calls, &name),
         )?;
 
-        Ok(updated)
+        Ok(name)
     }
 
     pub fn get_all_mentees(&self) -> Result<Vec<Mentee>, MenteeError> {

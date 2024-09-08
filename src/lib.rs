@@ -25,11 +25,41 @@ enum Commands {
     /// Adds a new mentee
     Add,
     /// Updates an existing mentee
-    Update { name: String },
+    Update(UpdateMentee),
     /// Deletes a mentee
     Delete { name: String },
     /// Count or Sum a specified column
     Count { column: Option<ColumnOptions> },
+}
+
+#[derive(Parser, Clone, Debug)]
+pub struct UpdateMentee {
+    /// The current name of the mentee (Required)
+    pub name: String,
+
+    /// Optionally update the name
+    #[arg(long)]
+    pub new_name: Option<String>,
+
+    /// Optionally update the number of calls
+    #[arg(long)]
+    pub calls: Option<String>,
+
+    /// Optionally update the status
+    #[arg(long)]
+    pub status: Option<String>,
+
+    /// Optionally update the day the mentee pays
+    #[arg(long)]
+    pub payment_day: Option<String>,
+
+    /// Optionally update the gross amount
+    #[arg(long)]
+    pub gross: Option<String>,
+
+    /// Optionally update the net amount
+    #[arg(long)]
+    pub net: Option<String>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -59,10 +89,31 @@ pub fn run() -> Result<(), MenteeError> {
             Ok(mentee) => println!("Added Mentee: {}", mentee.name),
             Err(err) => eprintln!("{err}"),
         },
-        Commands::Update { name } => match mentee_service.update_mentee(name) {
-            Ok(updated) => println!("Updated Mentee: {}", updated),
-            Err(err) => eprintln!("{err}"),
-        },
+        Commands::Update(update_args) => {
+            let has_any_flags = vec![
+                update_args.new_name.as_ref(),
+                update_args.calls.as_ref(),
+                update_args.gross.as_ref(),
+                update_args.net.as_ref(),
+                update_args.status.as_ref(),
+                update_args.payment_day.as_ref(),
+            ]
+            .into_iter()
+            .map(|opt| opt.is_some())
+            .any(|x| x);
+
+            if has_any_flags {
+                match mentee_service.update_mentee_with_flags(update_args) {
+                    Ok(confirmation) => println!("{}", confirmation),
+                    Err(err) => eprintln!("{err}"),
+                };
+            } else {
+                match mentee_service.update_mentee_interactive(update_args.name) {
+                    Ok(name) => println!("Updated {}", name),
+                    Err(err) => eprintln!("{err}"),
+                };
+            }
+        }
         Commands::Delete { name } => match mentee_service.delete_mentee(name) {
             Ok(deleted) => println!("Deleted Mentee: {}", deleted),
             Err(err) => eprintln!("{err}"),
