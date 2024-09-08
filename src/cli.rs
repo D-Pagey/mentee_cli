@@ -1,6 +1,9 @@
 use cli_table::{format::Justify, Cell, Color, Style, Table};
 
-use crate::{error::MenteeError, mentee::Mentee};
+use crate::{
+    error::MenteeError,
+    mentee::{Mentee, Status},
+};
 
 pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
     let rows: Vec<Vec<cli_table::CellStruct>> = mentees
@@ -11,6 +14,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
                 mentee.calls.cell().justify(Justify::Right),
                 mentee.gross.cell().justify(Justify::Right),
                 mentee.net.cell().justify(Justify::Right),
+                Status::as_str(&mentee.status)
+                    .cell()
+                    .justify(Justify::Right),
                 mentee.payment_day.cell().justify(Justify::Right),
             ]
         })
@@ -23,6 +29,7 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             "Calls / Month".cell().bold(true),
             "Gross".cell().bold(true),
             "Net".cell().bold(true),
+            "Status".cell().bold(true),
             "Payment Day".cell().bold(true),
         ])
         .foreground_color(Some(Color::Green))

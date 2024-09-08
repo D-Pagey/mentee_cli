@@ -38,7 +38,6 @@ impl MenteeService {
         Status::from_str(&selected).ok_or_else(|| "Invalid status selected".into())
     }
 
-    // TODO: add validator to parse to number then check max calls
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
         let name = Text::new("What is their name?").prompt()?;
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
@@ -48,7 +47,6 @@ impl MenteeService {
         let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
 
         let mentee = Mentee {
-            id: 1,
             name,
             calls,
             gross,
@@ -67,7 +65,7 @@ impl MenteeService {
                 &mentee.calls,
                 &mentee.gross,
                 &mentee.net,
-                "warm",
+                Status::as_str(&mentee.status),
                 &mentee.payment_day,
             ),
         );
@@ -110,18 +108,9 @@ impl MenteeService {
         let mentee_iter = stmt.query_map([], |row| {
             let status_str: String = row.get(5)?;
 
-            // TODO: fix this unwrap
-            let status = Status::from_str(&status_str).unwrap();
-            //     .ok_or_else(|| {
-            //     rusqlite::Error::FromSqlConversionFailure(
-            //         5,
-            //         std::any::TypeId::of::<Status>(),
-            //         Box::new(dyn std::error::Error + Send + Sync),
-            //     )
-            // })?;
+            let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
 
             Ok(Mentee {
-                id: row.get(0)?,
                 name: row.get(1)?,
                 calls: row.get(2)?,
                 gross: row.get(3)?,

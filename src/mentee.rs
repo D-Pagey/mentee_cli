@@ -37,7 +37,6 @@ impl Status {
 }
 
 pub struct Mentee {
-    pub id: u32,
     pub name: String,
     pub calls: u32,
     pub status: Status,
