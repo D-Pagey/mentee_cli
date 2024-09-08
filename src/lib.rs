@@ -36,6 +36,8 @@ enum Commands {
 enum ColumnOptions {
     Mentees,
     Calls,
+    Gross,
+    Net,
 }
 
 pub fn run() -> Result<(), MenteeError> {
