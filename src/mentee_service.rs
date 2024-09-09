@@ -95,7 +95,7 @@ impl MenteeService {
         let mut updates = Vec::new();
         let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
 
-        if let Some(new_name) = update_args.new_name {
+        if let Some(new_name) = &update_args.new_name {
             updates.push("name = ?");
             params.push(Box::new(new_name));
         }
@@ -117,7 +117,7 @@ impl MenteeService {
 
         if let Some(status) = update_args.status {
             updates.push("status = ?");
-            params.push(Box::new(status));
+            params.push(Box::new(status.as_str()));
         }
 
         if let Some(payment_day) = update_args.payment_day {
@@ -127,7 +127,12 @@ impl MenteeService {
 
         // Join updates and generate the SQL query
         let updates_str = updates.join(", ");
-        let sql = format!("UPDATE mentees SET {} WHERE name = ?", updates_str);
+
+        let sql = format!(
+            "UPDATE {} SET {} WHERE name = ?",
+            constants::MENTEE_TABLE,
+            updates_str
+        );
 
         // Convert the params into the correct type
         let mut params_refs: Vec<&dyn rusqlite::ToSql> =
@@ -136,9 +141,16 @@ impl MenteeService {
         // Append the mentee's name as the last parameter.
         params_refs.push(&update_args.name);
 
-        self.conn.execute(&sql, params_refs.as_slice())?;
+        let rows_affected = self.conn.execute(&sql, params_refs.as_slice())?;
 
-        Ok(format!("{} was updated", update_args.name))
+        if rows_affected == 0 {
+            return Err(MenteeError::NotFound(update_args.name));
+        } else {
+            Ok(format!(
+                "{} was updated",
+                update_args.new_name.as_deref().unwrap_or(&update_args.name)
+            ))
+        }
     }
 
     pub fn update_mentee_interactive(&self, name: String) -> Result<String, MenteeError> {

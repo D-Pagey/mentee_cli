@@ -7,6 +7,7 @@ mod mentee_service;
 use clap::{Parser, Subcommand, ValueEnum};
 use cli::render_mentees_table;
 use error::MenteeError;
+use mentee::Status;
 use mentee_service::MenteeService;
 use rusqlite::Result;
 
@@ -38,28 +39,28 @@ pub struct UpdateMentee {
     pub name: String,
 
     /// Optionally update the name
-    #[arg(long)]
+    #[arg(long, value_parser = validate_name)]
     pub new_name: Option<String>,
 
     /// Optionally update the number of calls
     #[arg(long)]
-    pub calls: Option<String>,
+    pub calls: Option<i32>,
 
     /// Optionally update the status
     #[arg(long)]
-    pub status: Option<String>,
+    pub status: Option<Status>,
 
     /// Optionally update the day the mentee pays
     #[arg(long)]
-    pub payment_day: Option<String>,
+    pub payment_day: Option<i32>,
 
     /// Optionally update the gross amount
     #[arg(long)]
-    pub gross: Option<String>,
+    pub gross: Option<i32>,
 
     /// Optionally update the net amount
     #[arg(long)]
-    pub net: Option<String>,
+    pub net: Option<i32>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -68,6 +69,18 @@ enum ColumnOptions {
     Calls,
     Gross,
     Net,
+}
+
+fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Debug> {
+    option.as_ref().map(|value| value as &dyn std::fmt::Debug)
+}
+
+fn validate_name(s: &str) -> Result<String, String> {
+    if s.chars().all(|c| c.is_alphabetic() || c.is_whitespace()) {
+        Ok(s.to_string())
+    } else {
+        Err("Name can only contain letters and spaces.".to_string())
+    }
 }
 
 pub fn run() -> Result<(), MenteeError> {
@@ -90,28 +103,26 @@ pub fn run() -> Result<(), MenteeError> {
             Err(err) => eprintln!("{err}"),
         },
         Commands::Update(update_args) => {
-            let has_any_flags = vec![
-                update_args.new_name.as_ref(),
-                update_args.calls.as_ref(),
-                update_args.gross.as_ref(),
-                update_args.net.as_ref(),
-                update_args.status.as_ref(),
-                update_args.payment_day.as_ref(),
+            let has_any_flags = [
+                as_debug(&update_args.new_name),
+                as_debug(&update_args.calls),
+                as_debug(&update_args.gross),
+                as_debug(&update_args.net),
+                as_debug(&update_args.status),
+                as_debug(&update_args.payment_day),
             ]
-            .into_iter()
-            .map(|opt| opt.is_some())
-            .any(|x| x);
+            .iter()
+            .any(Option::is_some);
 
-            if has_any_flags {
-                match mentee_service.update_mentee_with_flags(update_args) {
-                    Ok(confirmation) => println!("{}", confirmation),
-                    Err(err) => eprintln!("{err}"),
-                };
+            let result = if has_any_flags {
+                mentee_service.update_mentee_with_flags(update_args)
             } else {
-                match mentee_service.update_mentee_interactive(update_args.name) {
-                    Ok(name) => println!("Updated {}", name),
-                    Err(err) => eprintln!("{err}"),
-                };
+                mentee_service.update_mentee_interactive(update_args.name)
+            };
+
+            match result {
+                Ok(message) => println!("{}", message),
+                Err(err) => eprintln!("{err}"),
             }
         }
         Commands::Delete { name } => match mentee_service.delete_mentee(name) {
