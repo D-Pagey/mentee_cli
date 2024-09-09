@@ -5,16 +5,29 @@ use crate::{
     mentee::{Mentee, Status},
 };
 
+fn capitalize_first_letter_of_each_word(s: &str) -> String {
+    s.split_whitespace() // Split the string by whitespace
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(), // Handle empty words
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect::<Vec<String>>() // Collect capitalized words into a vector
+        .join(" ") // Join words with a space
+}
+
 pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
     let rows: Vec<Vec<cli_table::CellStruct>> = mentees
         .into_iter()
         .map(|mentee| {
             vec![
-                mentee.name.cell(),
+                capitalize_first_letter_of_each_word(&mentee.name).cell(),
                 mentee.calls.cell().justify(Justify::Right),
                 mentee.gross.cell().justify(Justify::Right),
                 mentee.net.cell().justify(Justify::Right),
-                Status::as_str(&mentee.status)
+                capitalize_first_letter_of_each_word(Status::as_str(&mentee.status))
                     .cell()
                     .justify(Justify::Right),
                 mentee.payment_day.cell().justify(Justify::Right),
