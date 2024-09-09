@@ -30,7 +30,7 @@ enum Commands {
     /// Deletes a mentee
     Delete { name: String },
     /// Count or Sum a specified column
-    Count { column: Option<ColumnOptions> },
+    Count { column: Option<CountOptions> },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -64,7 +64,7 @@ pub struct UpdateMentee {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum ColumnOptions {
+enum CountOptions {
     Mentees,
     Calls,
     Gross,

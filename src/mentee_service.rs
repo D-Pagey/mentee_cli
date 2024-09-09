@@ -1,5 +1,5 @@
 use crate::{constants, error::MenteeError};
-use crate::{ColumnOptions, UpdateMentee};
+use crate::{CountOptions, UpdateMentee};
 
 use crate::mentee::{Mentee, Status};
 use inquire::{Select, Text};
@@ -7,6 +7,14 @@ use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
     conn: Connection,
+}
+
+fn select_status() -> Result<Status, MenteeError> {
+    // generate options from enum variants
+    let options = Status::variants();
+    let selected = Select::new("Select the mentee's status", options).prompt()?;
+
+    Status::from_str(&selected).ok_or_else(|| "Invalid status selected".into())
 }
 
 impl MenteeService {
@@ -30,20 +38,12 @@ impl MenteeService {
         Ok(MenteeService { conn })
     }
 
-    fn select_status() -> Result<Status, MenteeError> {
-        // generate options from enum variants
-        let options = Status::variants();
-        let selected = Select::new("Select the mentee's status", options).prompt()?;
-
-        Status::from_str(&selected).ok_or_else(|| "Invalid status selected".into())
-    }
-
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
         let name = Text::new("What is their name?").prompt()?;
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
-        let status = MenteeService::select_status()?;
+        let status = select_status()?;
         let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
 
         let mentee = Mentee {
@@ -153,18 +153,89 @@ impl MenteeService {
         }
     }
 
+    fn generate_update_query(&self, name: &str, selected: &str) -> Result<usize, MenteeError> {
+        let mut updates = Vec::new();
+        let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
+        match selected {
+            "Name" => {
+                let name = Text::new("What is their name?").prompt()?;
+                updates.push("name = ?");
+                params.push(Box::new(name)); // Add the new name to the params
+            }
+            "Calls" => {
+                let calls = inquire::prompt_u32("How many calls per month do they have?")?;
+                updates.push("calls = ?");
+                params.push(Box::new(calls)); // Add the new number of calls to the params
+            }
+            "Gross amount" => {
+                let gross = inquire::prompt_u32("What is the gross payment?")?;
+                updates.push("gross = ?");
+                params.push(Box::new(gross)); // Add the new gross amount to the params
+            }
+            "Net amount" => {
+                let net = inquire::prompt_u32("What is the net payment?")?;
+                updates.push("net = ?");
+                params.push(Box::new(net)); // Add the new net amount to the params
+            }
+            "Status" => {
+                let status = select_status()?;
+                updates.push("status = ?");
+                params.push(Box::new(status.as_str())); // Add the new status to the params
+            }
+            "Payment Day" => {
+                let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
+                updates.push("payment_day = ?");
+                params.push(Box::new(payment_day)); // Add the new payment day to the params
+            }
+            _ => {
+                return Err(MenteeError::InvalidInput(
+                    "Invalid select option".to_string(),
+                ))
+            }
+        }
+
+        // Join the updates
+        let updates_str = updates.join(", ");
+
+        // Construct the SQL query
+        let sql = format!(
+            "UPDATE {} SET {} WHERE name = ?",
+            constants::MENTEE_TABLE,
+            updates_str
+        );
+
+        // Add the mentee's current name to the params (for the WHERE clause)
+        params.push(Box::new(name));
+
+        // Convert params into the correct type
+        let params_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
+
+        // Execute the SQL query
+        let updated = self.conn.execute(&sql, params_refs.as_slice())?;
+
+        Ok(updated)
+    }
+
     pub fn update_mentee_interactive(&self, name: String) -> Result<String, MenteeError> {
-        let calls = Text::new("How many calls per month do they have?").prompt()?;
+        let options = vec![
+            "Name",
+            "Calls",
+            "Gross amount",
+            "Net amount",
+            "Status",
+            "Payment Day",
+        ];
 
-        self.conn.execute(
-            &format!(
-                "UPDATE {} SET calls = ?1 WHERE name = ?2",
-                constants::MENTEE_TABLE
-            ),
-            (&calls, &name),
-        )?;
+        let selected = Select::new("Which property do you want to update?", options).prompt()?;
 
-        Ok(name)
+        let rows_affected = self.generate_update_query(&name, selected)?;
+
+        if rows_affected == 0 {
+            return Err(MenteeError::NotFound(name));
+        } else {
+            Ok(format!("{} was updated", name))
+        }
     }
 
     pub fn get_all_mentees(&self) -> Result<Vec<Mentee>, MenteeError> {
@@ -194,11 +265,11 @@ impl MenteeService {
         Ok(mentees)
     }
 
-    pub fn get_mentee_count(&self, count: Option<ColumnOptions>) -> Result<String, MenteeError> {
+    pub fn get_mentee_count(&self, count: Option<CountOptions>) -> Result<String, MenteeError> {
         let (sql, message) = match count {
-            Some(ColumnOptions::Calls) => ("SELECT SUM(calls) FROM mentees", "Number of calls: "),
-            Some(ColumnOptions::Gross) => ("SELECT SUM(gross) FROM mentees", "Gross $"),
-            Some(ColumnOptions::Net) => ("SELECT SUM(net) FROM mentees", "Net $"),
+            Some(CountOptions::Calls) => ("SELECT SUM(calls) FROM mentees", "Number of calls: "),
+            Some(CountOptions::Gross) => ("SELECT SUM(gross) FROM mentees", "Gross $"),
+            Some(CountOptions::Net) => ("SELECT SUM(net) FROM mentees", "Net $"),
             _ => ("SELECT COUNT(*) FROM mentees", "Number of mentees: "),
         };
 
