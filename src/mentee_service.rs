@@ -153,40 +153,47 @@ impl MenteeService {
         }
     }
 
-    fn generate_update_query(&self, name: &str, selected: &str) -> Result<usize, MenteeError> {
+    fn generate_update_query(
+        &self,
+        name: &str,
+        selected: &str,
+    ) -> Result<(usize, Option<String>), MenteeError> {
         let mut updates = Vec::new();
         let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+        // only so I can create a better success message
+        let mut new_name: Option<String> = None;
 
         match selected {
             "Name" => {
                 let name = Text::new("What is their name?").prompt()?;
                 updates.push("name = ?");
-                params.push(Box::new(name)); // Add the new name to the params
+                params.push(Box::new(name.clone()));
+                new_name = Some(name);
             }
             "Calls" => {
                 let calls = inquire::prompt_u32("How many calls per month do they have?")?;
                 updates.push("calls = ?");
-                params.push(Box::new(calls)); // Add the new number of calls to the params
+                params.push(Box::new(calls));
             }
             "Gross amount" => {
                 let gross = inquire::prompt_u32("What is the gross payment?")?;
                 updates.push("gross = ?");
-                params.push(Box::new(gross)); // Add the new gross amount to the params
+                params.push(Box::new(gross));
             }
             "Net amount" => {
                 let net = inquire::prompt_u32("What is the net payment?")?;
                 updates.push("net = ?");
-                params.push(Box::new(net)); // Add the new net amount to the params
+                params.push(Box::new(net));
             }
             "Status" => {
                 let status = select_status()?;
                 updates.push("status = ?");
-                params.push(Box::new(status.as_str())); // Add the new status to the params
+                params.push(Box::new(status.as_str()));
             }
             "Payment Day" => {
                 let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
                 updates.push("payment_day = ?");
-                params.push(Box::new(payment_day)); // Add the new payment day to the params
+                params.push(Box::new(payment_day));
             }
             _ => {
                 return Err(MenteeError::InvalidInput(
@@ -214,7 +221,7 @@ impl MenteeService {
         // Execute the SQL query
         let updated = self.conn.execute(&sql, params_refs.as_slice())?;
 
-        Ok(updated)
+        Ok((updated, new_name))
     }
 
     pub fn update_mentee_interactive(&self, name: String) -> Result<String, MenteeError> {
@@ -229,12 +236,15 @@ impl MenteeService {
 
         let selected = Select::new("Which property do you want to update?", options).prompt()?;
 
-        let rows_affected = self.generate_update_query(&name, selected)?;
+        let (rows_affected, new_name) = self.generate_update_query(&name, selected)?;
 
         if rows_affected == 0 {
             return Err(MenteeError::NotFound(name));
         } else {
-            Ok(format!("{} was updated", name))
+            Ok(format!(
+                "{} was updated",
+                new_name.as_deref().unwrap_or(&name)
+            ))
         }
     }
 
