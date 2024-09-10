@@ -3,6 +3,7 @@ mod constants;
 mod error;
 mod mentee;
 mod mentee_service;
+mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use cli::render_mentees_table;
@@ -10,6 +11,7 @@ use error::MenteeError;
 use mentee::Status;
 use mentee_service::MenteeService;
 use rusqlite::Result;
+use utils::clap_validate_name;
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
@@ -39,7 +41,7 @@ pub struct UpdateMentee {
     pub name: String,
 
     /// Optionally update the name
-    #[arg(long, value_parser = validate_name)]
+    #[arg(long, value_parser = clap_validate_name)]
     pub new_name: Option<String>,
 
     /// Optionally update the number of calls
@@ -73,14 +75,6 @@ enum CountOptions {
 
 fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Debug> {
     option.as_ref().map(|value| value as &dyn std::fmt::Debug)
-}
-
-fn validate_name(s: &str) -> Result<String, String> {
-    if s.chars().all(|c| c.is_alphabetic() || c.is_whitespace()) {
-        Ok(s.to_string())
-    } else {
-        Err("Name can only contain letters and spaces.".to_string())
-    }
 }
 
 pub fn run() -> Result<(), MenteeError> {

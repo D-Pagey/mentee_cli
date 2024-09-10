@@ -1,3 +1,4 @@
+use crate::utils::inquire_validate_name;
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
@@ -39,7 +40,9 @@ impl MenteeService {
     }
 
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
-        let name = Text::new("What is their name?").prompt()?;
+        let name = Text::new("What is their name?")
+            .with_validator(inquire_validate_name)
+            .prompt()?;
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
@@ -165,7 +168,9 @@ impl MenteeService {
 
         match selected {
             "Name" => {
-                let name = Text::new("What is their name?").prompt()?;
+                let name = Text::new("What is their name?")
+                    .with_validator(inquire_validate_name)
+                    .prompt()?;
                 updates.push("name = ?");
                 params.push(Box::new(name.clone()));
                 new_name = Some(name);
