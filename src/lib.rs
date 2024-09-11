@@ -11,7 +11,7 @@ use error::MenteeError;
 use mentee::Status;
 use mentee_service::MenteeService;
 use rusqlite::Result;
-use utils::clap_validate_name;
+use utils::{clap_validate_day, clap_validate_name};
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
@@ -53,7 +53,7 @@ pub struct UpdateMentee {
     pub status: Option<Status>,
 
     /// Optionally update the day the mentee pays
-    #[arg(long)]
+    #[arg(long, value_parser = clap_validate_day)]
     pub payment_day: Option<i32>,
 
     /// Optionally update the gross amount

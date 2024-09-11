@@ -5,6 +5,20 @@ use crate::{
     mentee::{Mentee, Status},
 };
 
+fn add_ordinal_suffix(n: u32) -> String {
+    let suffix = match n % 100 {
+        11 | 12 | 13 => "th", // Special case for 11, 12, 13
+        _ => match n % 10 {
+            1 => "st",
+            2 => "nd",
+            3 => "rd",
+            _ => "th",
+        },
+    };
+
+    format!("{}{}", n, suffix)
+}
+
 fn capitalize_first_letter_of_each_word(s: &str) -> String {
     s.split_whitespace() // Split the string by whitespace
         .map(|word| {
@@ -30,7 +44,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status))
                     .cell()
                     .justify(Justify::Right),
-                mentee.payment_day.cell().justify(Justify::Right),
+                add_ordinal_suffix(mentee.payment_day)
+                    .cell()
+                    .justify(Justify::Right),
             ]
         })
         .collect();

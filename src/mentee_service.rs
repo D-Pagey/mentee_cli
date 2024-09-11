@@ -1,9 +1,9 @@
-use crate::utils::inquire_validate_name;
+use crate::utils::{inquire_validate_day, inquire_validate_name};
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
 use crate::mentee::{Mentee, Status};
-use inquire::{Select, Text};
+use inquire::{CustomType, Select, Text};
 use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
@@ -47,7 +47,9 @@ impl MenteeService {
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
         let status = select_status()?;
-        let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
+        let payment_day: u32 = CustomType::new("Which day of the month do they pay?")
+            .with_validator(inquire_validate_day)
+            .prompt()?;
 
         let mentee = Mentee {
             name,
@@ -196,7 +198,9 @@ impl MenteeService {
                 params.push(Box::new(status.as_str()));
             }
             "Payment Day" => {
-                let payment_day = inquire::prompt_u32("Which day of the month do they pay?")?;
+                let payment_day: u32 = CustomType::new("Which day of the month do they pay?")
+                    .with_validator(inquire_validate_day)
+                    .prompt()?;
                 updates.push("payment_day = ?");
                 params.push(Box::new(payment_day));
             }
