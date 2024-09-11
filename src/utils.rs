@@ -48,3 +48,23 @@ pub fn clap_validate_day(input: &str) -> Result<String, String> {
         Err(err) => Err(err),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ok_for_valid_name() {
+        let result = validate_name_core("dan");
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn error_for_invalid_name() {
+        let result = validate_name_core("d#n");
+        assert_eq!(
+            result,
+            Err(String::from("Name can only contain letters and spaces."))
+        );
+    }
+}
