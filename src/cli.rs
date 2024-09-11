@@ -41,6 +41,7 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
                 mentee.calls.cell().justify(Justify::Right),
                 mentee.gross.cell().justify(Justify::Right),
                 mentee.net.cell().justify(Justify::Right),
+                mentee.net_per_call.cell().justify(Justify::Right),
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status))
                     .cell()
                     .justify(Justify::Right),
@@ -58,10 +59,11 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             "Calls / Month".cell().bold(true),
             "Gross".cell().bold(true),
             "Net".cell().bold(true),
+            "Net / Call".cell().bold(true),
             "Status".cell().bold(true),
             "Payment Day".cell().bold(true),
         ])
-        .foreground_color(Some(Color::Green))
+        .foreground_color(Some(Color::Blue))
         .bold(true);
 
     let table_display = table.display()?;

@@ -18,6 +18,14 @@ fn select_status() -> Result<Status, MenteeError> {
     Status::from_str(&selected).ok_or_else(|| "Invalid status selected".into())
 }
 
+fn calc_net_per_call(net: u32, calls: u32) -> u32 {
+    if calls == 0 {
+        net
+    } else {
+        net / calls
+    }
+}
+
 impl MenteeService {
     pub fn new(database_url: &str) -> Result<Self, MenteeError> {
         let conn = Connection::open(database_url)?;
@@ -29,6 +37,7 @@ impl MenteeService {
             calls INTEGER,
             gross INTEGER NOT NULL,
             net INTEGER NOT NULL,
+            net_per_call INTEGER NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
             payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31))",
             constants::MENTEE_TABLE
@@ -46,6 +55,7 @@ impl MenteeService {
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
+        let net_per_call = calc_net_per_call(net, calls);
         let status = select_status()?;
         let payment_day: u32 = CustomType::new("Which day of the month do they pay?")
             .with_validator(inquire_validate_day)
@@ -56,13 +66,14 @@ impl MenteeService {
             calls,
             gross,
             net,
+            net_per_call,
             status,
             payment_day,
         };
 
         let result = self.conn.execute(
             &format!(
-                "INSERT INTO {} (name, calls, gross, net, status, payment_day) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                "INSERT INTO {} (name, calls, gross, net, net_per_call, status, payment_day) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 constants::MENTEE_TABLE
             ),
             (
@@ -70,6 +81,7 @@ impl MenteeService {
                 &mentee.calls,
                 &mentee.gross,
                 &mentee.net,
+                &mentee.net_per_call,
                 Status::as_str(&mentee.status),
                 &mentee.payment_day,
             ),
@@ -261,7 +273,7 @@ impl MenteeService {
         let sql = format!("SELECT * FROM {}", constants::MENTEE_TABLE);
         let mut stmt = self.conn.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
-            let status_str: String = row.get(5)?;
+            let status_str: String = row.get(6)?;
 
             let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
 
@@ -270,8 +282,9 @@ impl MenteeService {
                 calls: row.get(2)?,
                 gross: row.get(3)?,
                 net: row.get(4)?,
+                net_per_call: row.get(5)?,
                 status,
-                payment_day: row.get(6)?,
+                payment_day: row.get(7)?,
             })
         })?;
 
