@@ -45,6 +45,5 @@ pub struct Mentee {
     pub status: Status,
     pub gross: u32,
     pub net: u32,
-    pub net_per_call: u32,
     pub payment_day: u32,
 }

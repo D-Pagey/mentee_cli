@@ -5,6 +5,14 @@ use crate::{
     mentee::{Mentee, Status},
 };
 
+fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
+    if *calls == 0 {
+        *net
+    } else {
+        net / calls
+    }
+}
+
 fn add_ordinal_suffix(n: u32) -> String {
     let suffix = match n % 100 {
         11 | 12 | 13 => "th", // Special case for 11, 12, 13
@@ -36,12 +44,14 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
     let rows: Vec<Vec<cli_table::CellStruct>> = mentees
         .into_iter()
         .map(|mentee| {
+            let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
+
             vec![
                 capitalize_first_letter_of_each_word(&mentee.name).cell(),
                 mentee.calls.cell().justify(Justify::Right),
                 mentee.gross.cell().justify(Justify::Right),
                 mentee.net.cell().justify(Justify::Right),
-                mentee.net_per_call.cell().justify(Justify::Right),
+                net_per_call.cell().justify(Justify::Right),
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status))
                     .cell()
                     .justify(Justify::Right),
