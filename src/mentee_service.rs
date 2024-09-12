@@ -289,6 +289,17 @@ impl MenteeService {
             Some(CountOptions::Calls) => ("SELECT SUM(calls) FROM mentees", "Number of calls: "),
             Some(CountOptions::Gross) => ("SELECT SUM(gross) FROM mentees", "Gross $"),
             Some(CountOptions::Net) => ("SELECT SUM(net) FROM mentees", "Net $"),
+            Some(CountOptions::NetPerCall) => (
+                "SELECT CAST(AVG(net_per_call) AS INTEGER) AS average_net_per_call
+                    FROM (
+                        SELECT CASE 
+                            WHEN calls > 0 THEN net / calls 
+                            ELSE net 
+                            END AS net_per_call
+                    FROM mentees
+                    );",
+                "Average net amount per call $",
+            ),
             _ => ("SELECT COUNT(*) FROM mentees", "Number of mentees: "),
         };
 

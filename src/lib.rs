@@ -71,6 +71,7 @@ enum CountOptions {
     Calls,
     Gross,
     Net,
+    NetPerCall,
 }
 
 fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Debug> {
