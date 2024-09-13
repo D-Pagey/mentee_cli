@@ -117,4 +117,16 @@ mod tests {
             assert_eq!(result, expected, "Failed for input: {}", input);
         }
     }
+
+    #[test]
+    fn capitalize_one_word() {
+        let result = capitalize_first_letter_of_each_word("dan");
+        assert_eq!(result, "Dan")
+    }
+
+    #[test]
+    fn capitalize_multiple_words() {
+        let result = capitalize_first_letter_of_each_word("dan page");
+        assert_eq!(result, "Dan Page")
+    }
 }
