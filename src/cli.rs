@@ -80,3 +80,41 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
 
     Ok(println!("{}", table_display))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn net_for_zero_calls() {
+        let net_amount = 200;
+        let result = calc_net_per_call(&net_amount, &0);
+        assert_eq!(result, net_amount)
+    }
+
+    #[test]
+    fn correct_net_per_call() {
+        let net_amount = 200;
+        let result = calc_net_per_call(&net_amount, &2);
+        assert_eq!(result, 100)
+    }
+
+    #[test]
+    fn correct_suffix_for_day() {
+        let test_cases = vec![
+            (11, "11th"),
+            (12, "12th"),
+            (13, "13th"),
+            (1, "1st"),
+            (33, "33rd"),
+            (22, "22nd"),
+            (101, "101st"),
+            (112, "112th"),
+        ];
+
+        for (input, expected) in test_cases {
+            let result = add_ordinal_suffix(input);
+            assert_eq!(result, expected, "Failed for input: {}", input);
+        }
+    }
+}
