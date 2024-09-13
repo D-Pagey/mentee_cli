@@ -40,29 +40,40 @@ fn capitalize_first_letter_of_each_word(s: &str) -> String {
         .join(" ") // Join words with a space
 }
 
-pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
-    let rows: Vec<Vec<cli_table::CellStruct>> = mentees
+pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
+    let rows: Vec<Vec<String>> = mentees
         .into_iter()
         .map(|mentee| {
             let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
 
             vec![
-                capitalize_first_letter_of_each_word(&mentee.name).cell(),
-                mentee.calls.cell().justify(Justify::Right),
-                mentee.gross.cell().justify(Justify::Right),
-                mentee.net.cell().justify(Justify::Right),
-                net_per_call.cell().justify(Justify::Right),
-                capitalize_first_letter_of_each_word(Status::as_str(&mentee.status))
-                    .cell()
-                    .justify(Justify::Right),
-                add_ordinal_suffix(mentee.payment_day)
-                    .cell()
-                    .justify(Justify::Right),
+                capitalize_first_letter_of_each_word(&mentee.name),
+                mentee.calls.to_string(),
+                mentee.gross.to_string(),
+                mentee.net.to_string(),
+                net_per_call.to_string(),
+                capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
+                add_ordinal_suffix(mentee.payment_day),
             ]
         })
         .collect();
 
-    let table = rows
+    rows
+}
+
+pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
+    let rows = format_mentees(mentees);
+
+    let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|cell| cell.cell().justify(Justify::Right))
+                .collect()
+        })
+        .collect();
+
+    let table = cell_rows
         .table()
         .title(vec![
             "Name".cell().bold(true),
@@ -84,6 +95,29 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_format_mentees() {
+        let mentees = vec![Mentee {
+            name: "john doe".to_string(),
+            calls: 10,
+            gross: 1000,
+            net: 900,
+            status: Status::Warm,
+            payment_day: 5,
+        }];
+
+        let rows = format_mentees(mentees);
+
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0][0], "John Doe");
+        assert_eq!(rows[0][1], "10");
+        assert_eq!(rows[0][2], "1000");
+        assert_eq!(rows[0][3], "900");
+        assert_eq!(rows[0][4], "90");
+        assert_eq!(rows[0][5], "Warm");
+        assert_eq!(rows[0][6], "5th");
+    }
 
     #[test]
     fn net_for_zero_calls() {
