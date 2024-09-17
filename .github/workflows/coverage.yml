@@ -1,0 +1,38 @@
+name: Test Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Install Rust (you can specify the toolchain version if necessary)
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # Step 3: Install cargo-tarpaulin
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      # Step 4: Run the tests and generate coverage report
+      - name: Run test coverage
+        run: |
+          cargo tarpaulin --out Xml --verbose
+
+      # Step 5: Display test coverage report in the workflow logs
+      - name: Show coverage results
+        run: |
+          cat target/tarpaulin/coverage.xml
