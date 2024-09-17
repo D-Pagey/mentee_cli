@@ -26,13 +26,11 @@ jobs:
 
       - name: Run test coverage
         run: |
-          cargo tarpaulin --out Xml --verbose || echo "Tarpaulin failed"
+          cargo tarpaulin --out Xml --verbose
 
       - name: List target directory contents
-        run: ls -R target
+        run: ls -R target/tarpaulin
 
-      # Display the coverage results (if coverage.xml exists)
-      - name: Show coverage results
-        if: success()
+      - name: Show Cobertura coverage results
         run: |
-          cat target/tarpaulin/coverage.xml || echo "No coverage report found"
+          cat target/tarpaulin/cobertura.xml || echo "No coverage report found"
