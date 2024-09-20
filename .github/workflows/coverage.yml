@@ -23,6 +23,15 @@ jobs:
         run: |
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
+      - name: Check and display Cobertura XML file
+        run: |
+          if [ -f cobertura.xml ]; then
+            echo "Cobertura XML file exists. Displaying contents:"
+            cat cobertura.xml
+          else
+            echo "Cobertura XML file does not exist."
+          fi
+
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
         with:
