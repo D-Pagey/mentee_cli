@@ -24,7 +24,7 @@ jobs:
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
       - name: Install xmllint
-        run: sudo apt-get install -y libxml2-utils
+        run: apt-get install -y libxml2-utils
 
       - name: Check and enforce line coverage threshold
         run: |
