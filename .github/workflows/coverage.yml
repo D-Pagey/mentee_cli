@@ -23,6 +23,9 @@ jobs:
 
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin
+      
+      - name: Check cargo-tarpaulin version
+        run: cargo tarpaulin --version
 
       - name: Run test coverage
         run: |
@@ -32,5 +35,4 @@ jobs:
         run: ls -R target/tarpaulin
 
       - name: Show Cobertura coverage results
-        run: |
-          cat target/tarpaulin/cobertura.xml || echo "No coverage report found" >> $GITHUB_OUTPUT
+        run: cat target/tarpaulin/cobertura.xml || echo "No coverage report found"
