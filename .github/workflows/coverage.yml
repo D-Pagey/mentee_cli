@@ -23,11 +23,7 @@ jobs:
         run: |
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
-      - name: List target directory contents
-        run: ls -R target/tarpaulin
-
-      - name: Show Cobertura coverage results
-        run: cat target/tarpaulin/cobertura.xml || echo "No coverage report found"
-
-      - name: Cat json file
-        run: cat target/tarpaulin/mentees-coverage.json || echo "No coverage report found"
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
