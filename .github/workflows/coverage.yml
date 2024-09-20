@@ -23,27 +23,25 @@ jobs:
         run: |
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
-      - name: Install xmlstarlet
-        run: apt-get install -y xmlstarlet
+      - name: Extract line coverage from Cobertura XML
+        uses: Mudlet/xmlstarlet-action@master
+        id: extract_coverage
+        with:
+          args: sel -t -v "/coverage/@line-rate" cobertura.xml
 
-      - name: Check and enforce line coverage threshold
+      - name: Check line coverage threshold
         run: |
-          if [ -f cobertura.xml ]; then
-            line_coverage=$(xmlstarlet sel -t -v "/coverage/@line-rate" cobertura.xml)
-            # Convert line coverage to percentage
-            line_coverage_percent=$(echo "$line_coverage * 100" | bc)
-            echo "Line Coverage: ${line_coverage_percent}%"
-            
-            # Set the threshold for line coverage
-            threshold=80
-            
-            # Compare the coverage with the threshold
-            if (( $(echo "$line_coverage_percent < $threshold" | bc -l) )); then
-              echo "Line coverage is below the threshold of ${threshold}%!"
-              exit 1
-            else
-              echo "Line coverage meets the threshold of ${threshold}%."
-            fi
-          else
-            echo "Cobertura XML file does not exist."
+          line_coverage="${{ steps.extract_coverage.outputs.result }}"
+          line_coverage_percent=$(echo "$line_coverage * 100" | bc)
+          echo "Line Coverage: ${line_coverage_percent}%"
+
+          # Set the threshold for line coverage
+          threshold=80
+
+          # Compare the coverage with the threshold
+          if (( $(echo "$line_coverage_percent < $threshold" | bc -l) )); then
+            echo "Line coverage is below the threshold of ${threshold}%!"
             exit 1
+          else
+            echo "Line coverage meets the threshold of ${threshold}%."
+          fi
