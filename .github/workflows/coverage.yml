@@ -28,3 +28,6 @@ jobs:
 
       - name: Show Cobertura coverage results
         run: cat target/tarpaulin/cobertura.xml || echo "No coverage report found"
+
+      - name: Cat json file
+        run: cat target/tarpaulin/mentees-coverage.json || echo "No coverage report found"
