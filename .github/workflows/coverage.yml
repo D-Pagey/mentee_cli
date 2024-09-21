@@ -38,7 +38,7 @@ jobs:
           echo "Line Coverage: ${line_coverage_percent}%"
 
           # Set the threshold for line coverage
-          threshold=20
+          threshold=25
 
           # Compare the coverage with the threshold
           if [ "$line_coverage_percent" -lt "$threshold" ]; then
