@@ -32,7 +32,7 @@ jobs:
       - name: Check line coverage threshold
         run: |
           line_coverage="${{ steps.extract_coverage.outputs.xmlstarlet_result }}"
-
+          
           # Convert to integer percentage (assuming line_coverage is a float like 0.85)
           line_coverage_percent=$(awk "BEGIN {print int($line_coverage * 100)}")
           echo "Line Coverage: ${line_coverage_percent}%"
@@ -41,7 +41,7 @@ jobs:
           threshold=80
 
           # Compare the coverage with the threshold
-          if (( $(echo "$line_coverage_percent < $threshold" | bc -l) )); then
+          if [ "$line_coverage_percent" -lt "$threshold" ]; then
             echo "Line coverage is below the threshold of ${threshold}%!"
             exit 1
           else
