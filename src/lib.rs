@@ -2,7 +2,7 @@ mod cli;
 mod constants;
 mod error;
 mod mentee;
-mod mentee_service;
+pub mod mentee_service;
 mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -66,7 +66,7 @@ pub struct UpdateMentee {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum CountOptions {
+pub enum CountOptions {
     Mentees,
     Calls,
     Gross,
