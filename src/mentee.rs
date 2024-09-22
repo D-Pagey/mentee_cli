@@ -1,6 +1,15 @@
 use clap::ValueEnum;
 
-#[derive(Debug, Clone, ValueEnum)]
+pub struct Mentee {
+    pub name: String,
+    pub calls: u32,
+    pub status: Status,
+    pub gross: u32,
+    pub net: u32,
+    pub payment_day: u32,
+}
+
+#[derive(Debug, Clone, ValueEnum, PartialEq)]
 pub enum Status {
     Archived,
     Cold,
@@ -39,11 +48,34 @@ impl Status {
     }
 }
 
-pub struct Mentee {
-    pub name: String,
-    pub calls: u32,
-    pub status: Status,
-    pub gross: u32,
-    pub net: u32,
-    pub payment_day: u32,
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_as_str() {
+        assert_eq!(Status::Hot.as_str(), "hot");
+        assert_eq!(Status::Warm.as_str(), "warm");
+        assert_eq!(Status::Cold.as_str(), "cold");
+        assert_eq!(Status::Archived.as_str(), "archived");
+    }
+
+    #[test]
+    fn test_status_from_str() {
+        assert_eq!(Status::from_str("hot"), Some(Status::Hot));
+        assert_eq!(Status::from_str("warm"), Some(Status::Warm));
+        assert_eq!(Status::from_str("cold"), Some(Status::Cold));
+        assert_eq!(Status::from_str("archived"), Some(Status::Archived));
+
+        assert_eq!(Status::from_str("unknown"), None);
+        assert_eq!(Status::from_str(""), None);
+        assert_eq!(Status::from_str("_"), None);
+        assert_eq!(Status::from_str("hott"), None);
+    }
+
+    #[test]
+    fn test_status_variants() {
+        let expected = vec!["hot", "warm", "cold", "archived"];
+        assert_eq!(Status::variants(), expected);
+    }
 }
