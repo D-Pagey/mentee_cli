@@ -18,29 +18,6 @@ fn test_empty_mentees() {
     fs::remove_file(database_url).unwrap();
 }
 
-// #[test]
-// fn test_add_mentee() {
-//     let database_url = "test_database.db";
-//     setup_test_database(database_url);
-//
-//     Command::cargo_bin("mentees")
-//         .unwrap()
-//         .args(&["list"])
-//         .assert()
-//         .success()
-//         .stdout(predicate::str::contains("Name"));
-//
-//     Command::cargo_bin("mentees")
-//         .unwrap()
-//         .args(&["add"])
-//         .write_stdin("Dan Page/n")
-//         .assert()
-//         .success()
-//         .stdout(predicate::str::contains("What is their name?"));
-//
-//     fs::remove_file(database_url).unwrap();
-// }
-
 fn setup_test_database(database_url: &str) {
     // Ensure no leftover database from previous tests
     if Path::new(database_url).exists() {
