@@ -30,7 +30,8 @@ impl MenteeService {
             gross INTEGER NOT NULL,
             net INTEGER NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
-            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31))",
+            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31),
+            notes TEXT)",
             constants::MENTEE_TABLE
         );
 
@@ -50,6 +51,7 @@ impl MenteeService {
         let payment_day: u32 = CustomType::new("Which day of the month do they pay?")
             .with_validator(inquire_validate_day)
             .prompt()?;
+        let notes = Text::new("Any notes about them?").prompt()?;
 
         let mentee = Mentee {
             name,
@@ -58,11 +60,12 @@ impl MenteeService {
             net,
             status,
             payment_day,
+            notes,
         };
 
         let result = self.conn.execute(
             &format!(
-                "INSERT INTO {} (name, calls, gross, net, status, payment_day) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 constants::MENTEE_TABLE
             ),
             (
@@ -72,6 +75,7 @@ impl MenteeService {
                 &mentee.net,
                 Status::as_str(&mentee.status),
                 &mentee.payment_day,
+                &mentee.notes,
             ),
         );
 
@@ -128,6 +132,11 @@ impl MenteeService {
         if let Some(payment_day) = update_args.payment_day {
             updates.push("payment_day = ?");
             params.push(Box::new(payment_day));
+        }
+
+        if let Some(notes) = update_args.notes {
+            updates.push("notes = ?");
+            params.push(Box::new(notes));
         }
 
         // Join updates and generate the SQL query
@@ -204,6 +213,11 @@ impl MenteeService {
                 updates.push("payment_day = ?");
                 params.push(Box::new(payment_day));
             }
+            "Notes" => {
+                let notes = Text::new("Any notes?").prompt()?;
+                updates.push("notes = ?");
+                params.push(Box::new(notes));
+            }
             _ => {
                 return Err(MenteeError::InvalidInput(
                     "Invalid select option".to_string(),
@@ -241,6 +255,7 @@ impl MenteeService {
             "Net amount",
             "Status",
             "Payment Day",
+            "Notes",
         ];
 
         let selected = Select::new("Which property do you want to update?", options).prompt()?;
@@ -272,6 +287,7 @@ impl MenteeService {
                 net: row.get(4)?,
                 status,
                 payment_day: row.get(6)?,
+                notes: row.get(7)?,
             })
         })?;
 

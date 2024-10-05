@@ -54,6 +54,7 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
                 net_per_call.to_string(),
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
                 add_ordinal_suffix(mentee.payment_day),
+                mentee.notes,
             ]
         })
         .collect();
@@ -83,6 +84,7 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             "Net / Call".cell().bold(true),
             "Status".cell().bold(true),
             "Payment Day".cell().bold(true),
+            "Notes".cell().bold(true),
         ])
         .foreground_color(Some(Color::Blue))
         .bold(true);
@@ -105,6 +107,7 @@ mod tests {
             net: 900,
             status: Status::Warm,
             payment_day: 5,
+            notes: "CET timezone".to_string(),
         }];
 
         let rows = format_mentees(mentees);
@@ -117,6 +120,7 @@ mod tests {
         assert_eq!(rows[0][4], "90");
         assert_eq!(rows[0][5], "Warm");
         assert_eq!(rows[0][6], "5th");
+        assert_eq!(rows[0][7], "CET timezone");
     }
 
     #[test]

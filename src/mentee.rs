@@ -7,6 +7,7 @@ pub struct Mentee {
     pub gross: u32,
     pub net: u32,
     pub payment_day: u32,
+    pub notes: String,
 }
 
 #[derive(Debug, Clone, ValueEnum, PartialEq)]

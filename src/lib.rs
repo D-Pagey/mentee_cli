@@ -63,6 +63,10 @@ pub struct UpdateMentee {
     /// Optionally update the net amount
     #[arg(long)]
     pub net: Option<i32>,
+
+    /// Optionally update the notes
+    #[arg(long)]
+    pub notes: Option<String>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -105,6 +109,7 @@ pub fn run() -> Result<(), MenteeError> {
                 as_debug(&update_args.net),
                 as_debug(&update_args.status),
                 as_debug(&update_args.payment_day),
+                as_debug(&update_args.notes),
             ]
             .iter()
             .any(Option::is_some);
