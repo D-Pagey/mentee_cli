@@ -11,6 +11,7 @@ pub enum MenteeError {
     InvalidInput(String),
     UniqueViolation(String),
     ValidationError(String),
+    HomeDirNotFound,
 }
 
 impl fmt::Display for MenteeError {
@@ -25,6 +26,7 @@ impl fmt::Display for MenteeError {
             MenteeError::UniqueViolation(name) => {
                 write!(f, "Mentee with name '{}' already exists.", name)
             }
+            MenteeError::HomeDirNotFound => write!(f, "Home directory not found"),
         }
     }
 }

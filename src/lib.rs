@@ -83,8 +83,7 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 }
 
 pub fn run() -> Result<(), MenteeError> {
-    let database_url = "mentees.db";
-    let mentee_service = MenteeService::new(database_url)?;
+    let mentee_service = MenteeService::new()?;
 
     let cli = Cli::parse();
 
