@@ -20,9 +20,14 @@ fn select_status() -> Result<Status, MenteeError> {
 }
 
 impl MenteeService {
-    pub fn new() -> Result<Self, MenteeError> {
+    pub fn new(test_mode: bool) -> Result<Self, MenteeError> {
         // get users home directory
-        let mut db_path = home_dir().ok_or(MenteeError::HomeDirNotFound)?;
+        let mut db_path = if test_mode {
+            std::env::temp_dir()
+        } else {
+            home_dir().ok_or(MenteeError::HomeDirNotFound)?
+        };
+
         // specify the db file path
         db_path.push(".mentees"); // directory to store db
         std::fs::create_dir_all(&db_path)?; // ensure directory exists

@@ -1,12 +1,11 @@
 use assert_cmd::Command;
 use mentees::mentee_service::MenteeService;
 use predicates::prelude::predicate;
-use std::{fs, path::Path};
+use std::{env, fs, path::Path};
 
 #[test]
 fn test_empty_mentees() {
-    let database_url = "test_database.db";
-    setup_test_database(database_url);
+    setup_test_database();
 
     Command::cargo_bin("mentees")
         .unwrap()
@@ -14,15 +13,16 @@ fn test_empty_mentees() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Name")); // check table renders header
-
-    fs::remove_file(database_url).unwrap();
 }
 
-fn setup_test_database(database_url: &str) {
+fn setup_test_database() {
+    let mut db_path = env::temp_dir();
+    db_path.push("test_mentees.db");
+
     // Ensure no leftover database from previous tests
-    if Path::new(database_url).exists() {
-        fs::remove_file(database_url).unwrap();
+    if Path::new(&db_path).exists() {
+        fs::remove_file(&db_path).unwrap();
     }
 
-    let _ = MenteeService::new(database_url);
+    let _ = MenteeService::new(true);
 }

@@ -83,7 +83,7 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 }
 
 pub fn run() -> Result<(), MenteeError> {
-    let mentee_service = MenteeService::new()?;
+    let mentee_service = MenteeService::new(false)?;
 
     let cli = Cli::parse();
 
