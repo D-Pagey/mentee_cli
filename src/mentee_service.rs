@@ -285,9 +285,15 @@ impl MenteeService {
         }
     }
 
-    pub fn get_all_mentees(&self) -> Result<Vec<Mentee>, MenteeError> {
-        let sql = format!(
-            "SELECT * FROM {} WHERE status != 'archived' ORDER BY 
+    pub fn get_all_mentees(&self, show_all: bool) -> Result<Vec<Mentee>, MenteeError> {
+        let mut sql = format!("SELECT * FROM {}", constants::MENTEE_TABLE);
+
+        if !show_all {
+            sql = format!("{} WHERE status != 'archived'", sql)
+        }
+
+        sql = format!(
+            "{} ORDER BY 
                 CASE status 
                     WHEN 'hot' THEN 1
                     WHEN 'warm' THEN 2
@@ -295,8 +301,9 @@ impl MenteeService {
                     ELSE 4
                 END
             ",
-            constants::MENTEE_TABLE
+            sql
         );
+
         let mut stmt = self.conn.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
             let status_str: String = row.get(5)?;

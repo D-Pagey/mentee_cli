@@ -24,7 +24,11 @@ struct Cli {
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
     /// List all mentees
-    List,
+    List {
+        /// Include archived mentees which are hidden by default
+        #[arg(long, default_value_t = false)]
+        all: bool,
+    },
     /// Adds a new mentee
     Add,
     /// Updates an existing mentee
@@ -88,9 +92,9 @@ pub fn run() -> Result<(), MenteeError> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::List => {
+        Commands::List { all } => {
             if let Err(err) = mentee_service
-                .get_all_mentees()
+                .get_all_mentees(all)
                 .and_then(render_mentees_table)
             {
                 eprintln!("{err}");
