@@ -331,10 +331,13 @@ impl MenteeService {
     }
 
     pub fn get_mentee_count(&self, count: Option<CountOptions>) -> Result<String, MenteeError> {
-        let (sql, message) = match count {
-            Some(CountOptions::Calls) => ("SELECT SUM(calls) FROM mentees", "Number of calls: "),
-            Some(CountOptions::Gross) => ("SELECT SUM(gross) FROM mentees", "Gross $"),
-            Some(CountOptions::Net) => ("SELECT SUM(net) FROM mentees", "Net $"),
+        let (mut sql, message) = match count {
+            Some(CountOptions::Calls) => (
+                "SELECT SUM(calls) FROM mentees".to_string(),
+                "Number of calls: ",
+            ),
+            Some(CountOptions::Gross) => ("SELECT SUM(gross) FROM mentees".to_string(), "Gross $"),
+            Some(CountOptions::Net) => ("SELECT SUM(net) FROM mentees".to_string(), "Net $"),
             Some(CountOptions::NetPerCall) => (
                 "SELECT CAST(AVG(net_per_call) AS INTEGER) AS average_net_per_call
                     FROM (
@@ -343,13 +346,19 @@ impl MenteeService {
                             ELSE net 
                             END AS net_per_call
                     FROM mentees
-                    );",
+                    );"
+                .to_string(),
                 "Average net amount per call $",
             ),
-            _ => ("SELECT COUNT(*) FROM mentees", "Number of mentees: "),
+            _ => (
+                "SELECT COUNT(*) FROM mentees".to_string(),
+                "Number of mentees: ",
+            ),
         };
 
-        let result: i64 = self.conn.query_row(sql, [], |row| row.get(0))?;
+        sql = format!("{} WHERE status != 'archived'", sql);
+
+        let result: i64 = self.conn.query_row(&sql, [], |row| row.get(0))?;
 
         Ok(format!("{}{}", message, result))
     }
