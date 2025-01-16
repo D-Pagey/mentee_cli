@@ -37,6 +37,17 @@ enum Commands {
     Delete { name: String },
     /// Count or Sum a specified column
     Count { column: Option<CountOptions> },
+    /// Manage calls
+    Calls {
+        #[command(subcommand)]
+        action: CallActions,
+    },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum CallActions {
+    /// List all calls
+    List,
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -135,6 +146,11 @@ pub fn run() -> Result<(), MenteeError> {
         Commands::Count { column } => match mentee_service.get_mentee_count(column) {
             Ok(result) => println!("{result}"),
             Err(err) => eprintln!("{err}"),
+        },
+        Commands::Calls { action } => match action {
+            CallActions::List => {
+                println!("hello")
+            }
         },
     };
 

@@ -35,7 +35,7 @@ impl MenteeService {
 
         let conn = Connection::open(db_path)?;
 
-        let sql = format!(
+        let mentees_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
@@ -48,7 +48,20 @@ impl MenteeService {
             constants::MENTEE_TABLE
         );
 
-        conn.execute(&sql, ())?;
+        conn.execute(&mentees_sql, ())?;
+
+        let calls_sql = format!(
+            "CREATE TABLE IF NOT EXISTS {} (
+            id INTEGER PRIMARY KEY,
+            mentee_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            notes TEXT,
+            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
+            constants::CALLS_TABLE,
+            constants::MENTEE_TABLE
+        );
+
+        conn.execute(&calls_sql, ())?;
 
         Ok(MenteeService { conn })
     }
