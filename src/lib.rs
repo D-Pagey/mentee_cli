@@ -8,7 +8,7 @@ mod utils;
 
 use call_service::CallService;
 use clap::{Parser, Subcommand, ValueEnum};
-use cli::render_mentees_table;
+use cli::{render_calls_table, render_mentees_table};
 use error::MenteeError;
 use mentee::Status;
 use mentee_service::MenteeService;
@@ -50,6 +50,8 @@ enum Commands {
 enum CallActions {
     /// List all calls
     List,
+    /// Add a call
+    Add,
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -151,8 +153,13 @@ pub fn run() -> Result<(), MenteeError> {
             Err(err) => eprintln!("{err}"),
         },
         Commands::Calls { action } => match action {
-            CallActions::List => match call_service.get_all_calls() {
-                Ok(result) => println!("{:?}", result),
+            CallActions::List => {
+                if let Err(err) = call_service.get_all_calls().and_then(render_calls_table) {
+                    eprintln!("{err}");
+                }
+            }
+            CallActions::Add => match call_service.add_call() {
+                Ok(call) => println!("{:?}", call),
                 Err(err) => eprintln!("{err}"),
             },
         },

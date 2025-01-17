@@ -1,3 +1,5 @@
+use std::usize;
+
 use crate::utils::{inquire_validate_day, inquire_validate_name};
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};

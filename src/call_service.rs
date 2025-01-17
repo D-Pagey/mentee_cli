@@ -8,7 +8,10 @@ pub struct CallService {
 
 #[derive(Debug)]
 pub struct Call {
-    id: String,
+    pub id: u32,
+    pub mentee_id: u32,
+    pub date: String,
+    pub notes: String,
 }
 
 impl CallService {
@@ -42,7 +45,14 @@ impl CallService {
         let sql = format!("SELECT * FROM {}", constants::CALLS_TABLE);
         let mut stmt = self.conn.prepare(&sql)?;
 
-        let call_iter = stmt.query_map([], |row| Ok(Call { id: row.get(1)? }))?;
+        let call_iter = stmt.query_map([], |row| {
+            Ok(Call {
+                id: row.get(0)?,
+                mentee_id: row.get(1)?,
+                date: row.get(2)?,
+                notes: row.get(3)?,
+            })
+        })?;
 
         let mut calls: Vec<Call> = Vec::new();
 
@@ -51,5 +61,30 @@ impl CallService {
         }
 
         Ok(calls)
+    }
+
+    pub fn add_call(&self) -> Result<Call, MenteeError> {
+        let call = Call {
+            id: 1,
+            mentee_id: 1,
+            date: "1st January 2025".to_string(),
+            notes: "Long ass call".to_string(),
+        };
+
+        let result = self.conn.execute(
+            &format!(
+                "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
+                constants::CALLS_TABLE
+            ),
+            (&call.mentee_id, &call.date, &call.notes),
+        );
+
+        match result {
+            Ok(_) => Ok(call),
+            Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
+                Err(MenteeError::UniqueViolation(call.date))
+            }
+            Err(err) => Err(MenteeError::from(err)),
+        }
     }
 }

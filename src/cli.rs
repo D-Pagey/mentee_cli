@@ -1,6 +1,7 @@
 use cli_table::{format::Justify, Cell, Color, Style, Table};
 
 use crate::{
+    call_service::Call,
     error::MenteeError,
     mentee::{Mentee, Status},
 };
@@ -62,6 +63,22 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
     rows
 }
 
+pub fn format_calls(calls: Vec<Call>) -> Vec<Vec<String>> {
+    let rows: Vec<Vec<String>> = calls
+        .into_iter()
+        .map(|call| {
+            vec![
+                call.id.to_string(),
+                call.mentee_id.to_string(),
+                call.date,
+                call.notes,
+            ]
+        })
+        .collect();
+
+    rows
+}
+
 pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
     let rows = format_mentees(mentees);
 
@@ -87,6 +104,34 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             "Notes".cell().bold(true),
         ])
         .foreground_color(Some(Color::Blue))
+        .bold(true);
+
+    let table_display = table.display()?;
+
+    Ok(println!("{}", table_display))
+}
+
+pub fn render_calls_table(calls: Vec<Call>) -> Result<(), MenteeError> {
+    let rows = format_calls(calls);
+
+    let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|cell| cell.cell().justify(Justify::Right))
+                .collect()
+        })
+        .collect();
+
+    let table = cell_rows
+        .table()
+        .title(vec![
+            "Id".cell().bold(true),
+            "Mentee Id".cell().bold(true),
+            "Date".cell().bold(true),
+            "Notes".cell().bold(true),
+        ])
+        .foreground_color(Some(Color::Yellow))
         .bold(true);
 
     let table_display = table.display()?;
