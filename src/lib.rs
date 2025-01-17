@@ -1,3 +1,4 @@
+pub mod call_service;
 mod cli;
 mod constants;
 mod error;
@@ -5,6 +6,7 @@ mod mentee;
 pub mod mentee_service;
 mod utils;
 
+use call_service::CallService;
 use clap::{Parser, Subcommand, ValueEnum};
 use cli::render_mentees_table;
 use error::MenteeError;
@@ -99,6 +101,7 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 
 pub fn run() -> Result<(), MenteeError> {
     let mentee_service = MenteeService::new(false)?;
+    let call_service = CallService::new()?;
 
     let cli = Cli::parse();
 
@@ -148,9 +151,10 @@ pub fn run() -> Result<(), MenteeError> {
             Err(err) => eprintln!("{err}"),
         },
         Commands::Calls { action } => match action {
-            CallActions::List => {
-                println!("hello")
-            }
+            CallActions::List => match call_service.get_all_calls() {
+                Ok(result) => println!("{:?}", result),
+                Err(err) => eprintln!("{err}"),
+            },
         },
     };
 
