@@ -51,7 +51,7 @@ enum CallActions {
     /// List all calls
     List,
     /// Add a call
-    Add,
+    Add { name: String },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -158,8 +158,8 @@ pub fn run() -> Result<(), MenteeError> {
                     eprintln!("{err}");
                 }
             }
-            CallActions::Add => match call_service.add_call() {
-                Ok(call) => println!("{:?}", call),
+            CallActions::Add { name } => match call_service.add_call(name) {
+                Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
         },

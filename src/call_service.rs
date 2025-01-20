@@ -1,6 +1,6 @@
 use crate::{constants, error::MenteeError};
 use dirs::home_dir;
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 
 pub struct CallService {
     conn: Connection,
@@ -88,28 +88,46 @@ impl CallService {
         Ok(calls)
     }
 
-    pub fn add_call(&self) -> Result<Call, MenteeError> {
-        let call = Call {
-            id: 1,
-            mentee_id: 1,
-            date: "1st January 2025".to_string(),
-            notes: "Long ass call".to_string(),
-        };
-
-        let result = self.conn.execute(
-            &format!(
-                "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
-                constants::CALLS_TABLE
-            ),
-            (&call.mentee_id, &call.date, &call.notes),
+    fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
+        let sql = format!(
+            "SELECT id FROM {} WHERE name = ? LIMIT 1",
+            constants::MENTEE_TABLE,
         );
 
-        match result {
-            Ok(_) => Ok(call),
-            Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
-                Err(MenteeError::UniqueViolation(call.date))
-            }
-            Err(err) => Err(MenteeError::from(err)),
-        }
+        self.conn
+            .query_row(&sql, &[name], |row| row.get(0))
+            .optional()
+    }
+
+    pub fn add_call(&self, name: String) -> Result<String, MenteeError> {
+        let mentee_id = match self.get_mentee_id(&name)? {
+            Some(id) => id,
+            None => return Ok(format!("No mentee found with the name '{}'.", name)),
+        };
+
+        Ok(mentee_id.to_string())
+
+        // let call = Call {
+        //     id: 1,
+        //     mentee_id: 1,
+        //     date: "1st January 2025".to_string(),
+        //     notes: "Long ass call".to_string(),
+        // };
+        //
+        // let result = self.conn.execute(
+        //     &format!(
+        //         "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
+        //         constants::CALLS_TABLE
+        //     ),
+        //     (&call.mentee_id, &call.date, &call.notes),
+        // );
+        //
+        // match result {
+        //     Ok(_) => Ok(call),
+        //     Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
+        //         Err(MenteeError::UniqueViolation(call.date))
+        //     }
+        //     Err(err) => Err(MenteeError::from(err)),
+        // }
     }
 }
