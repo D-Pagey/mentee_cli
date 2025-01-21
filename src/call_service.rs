@@ -1,5 +1,6 @@
 use crate::{constants, error::MenteeError};
 use dirs::home_dir;
+use inquire::{DateSelect, Text};
 use rusqlite::{Connection, OptionalExtension};
 
 pub struct CallService {
@@ -35,7 +36,7 @@ impl CallService {
 
         let calls_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             mentee_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             notes TEXT,
@@ -105,29 +106,28 @@ impl CallService {
             None => return Ok(format!("No mentee found with the name '{}'.", name)),
         };
 
-        Ok(mentee_id.to_string())
+        let date = DateSelect::new("Enter the date of the call:")
+            .prompt()
+            .expect("Failed to read date")
+            .format("%d-%m-%Y")
+            .to_string();
 
-        // let call = Call {
-        //     id: 1,
-        //     mentee_id: 1,
-        //     date: "1st January 2025".to_string(),
-        //     notes: "Long ass call".to_string(),
-        // };
-        //
-        // let result = self.conn.execute(
-        //     &format!(
-        //         "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
-        //         constants::CALLS_TABLE
-        //     ),
-        //     (&call.mentee_id, &call.date, &call.notes),
-        // );
-        //
-        // match result {
-        //     Ok(_) => Ok(call),
-        //     Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
-        //         Err(MenteeError::UniqueViolation(call.date))
-        //     }
-        //     Err(err) => Err(MenteeError::from(err)),
-        // }
+        let notes = Text::new("Enter any notes for the call:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .prompt()
+            .expect("Failed to read notes");
+
+        let result = self.conn.execute(
+            &format!(
+                "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
+                constants::CALLS_TABLE
+            ),
+            (&mentee_id, &date, &notes),
+        );
+
+        match result {
+            Ok(_) => Ok(format!("Call with {name} on {date} added.")),
+            Err(err) => Err(MenteeError::from(err)),
+        }
     }
 }
