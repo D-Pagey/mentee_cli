@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use cli_table::{format::Justify, Cell, Color, Style, Table};
 
 use crate::{
@@ -63,14 +64,24 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
     rows
 }
 
+fn format_date(date_str: &str) -> Result<String, chrono::ParseError> {
+    // Parse the date string (ISO 8601 format)
+    let date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d")?;
+
+    // Format the date to "day, month, year"
+    Ok(date.format("%d %b %Y").to_string())
+}
+
 pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
     let rows: Vec<Vec<String>> = calls
         .into_iter()
         .map(|call| {
+            let formatted_date = format_date(&call.date).unwrap_or_else(|_| call.date.clone());
+
             vec![
                 call.call_id.to_string(),
-                call.mentee_name,
-                call.date,
+                capitalize_first_letter_of_each_word(&call.mentee_name),
+                formatted_date,
                 call.notes,
             ]
         })

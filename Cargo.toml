@@ -5,6 +5,7 @@ edition = "2021"
 description = "CLI to manage mentees"
 
 [dependencies]
+chrono = "0.4.39"
 clap = { version = "4.5.13", features = ["derive"] }
 cli-table = "0.4.9"
 dirs = "5.0.1"
