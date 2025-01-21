@@ -52,6 +52,8 @@ enum CallActions {
     List,
     /// Add a call
     Add { name: String },
+    /// Delete a call
+    Delete { call_id: u32 },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -160,6 +162,10 @@ pub fn run() -> Result<(), MenteeError> {
             }
             CallActions::Add { name } => match call_service.add_call(name) {
                 Ok(success) => println!("{success}"),
+                Err(err) => eprintln!("{err}"),
+            },
+            CallActions::Delete { call_id } => match call_service.delete_call(call_id) {
+                Ok(deleted) => println!("{deleted}"),
                 Err(err) => eprintln!("{err}"),
             },
         },
