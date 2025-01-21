@@ -58,7 +58,9 @@ impl MenteeService {
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
         let name = Text::new("What is their name?")
             .with_validator(inquire_validate_name)
-            .prompt()?;
+            .prompt()?
+            .to_lowercase();
+
         let calls = inquire::prompt_u32("How many calls per month do they have?")?;
         let gross = inquire::prompt_u32("What is the gross payment?")?;
         let net = inquire::prompt_u32("What is the net payment?")?;
