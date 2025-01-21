@@ -67,6 +67,8 @@ impl CallService {
                 {}
             ON
                 calls.mentee_id = mentees.id
+            ORDER BY 
+                calls.date DESC
             ",
             constants::CALLS_TABLE,
             constants::MENTEE_TABLE
@@ -125,7 +127,7 @@ impl CallService {
         let date = DateSelect::new("Enter the date of the call:")
             .prompt()
             .expect("Failed to read date")
-            .format("%d-%m-%Y")
+            .format("%Y-%m-%d")
             .to_string();
 
         let notes = Text::new("Enter any notes for the call:")
