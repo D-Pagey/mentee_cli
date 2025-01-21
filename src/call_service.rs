@@ -50,8 +50,11 @@ impl CallService {
         Ok(CallService { conn })
     }
 
-    pub fn get_all_calls(&self) -> Result<Vec<CallWithMenteeName>, MenteeError> {
-        let sql = format!(
+    pub fn get_all_calls(
+        &self,
+        name: Option<String>,
+    ) -> Result<Vec<CallWithMenteeName>, MenteeError> {
+        let mut sql = format!(
             "
             SELECT 
                 calls.id AS call_id,
@@ -68,6 +71,19 @@ impl CallService {
             constants::CALLS_TABLE,
             constants::MENTEE_TABLE
         );
+
+        if let Some(name) = name {
+            let mentee_id = match self.get_mentee_id(&name)? {
+                Some(id) => id,
+                None => {
+                    // TODO: change this to error not OK
+                    println!("No mentee found with the name '{}'.", name);
+                    return Ok(vec![]); // Return early with an empty vector
+                }
+            };
+
+            sql.push_str(format!("WHERE calls.mentee_id = {}", &mentee_id).as_str());
+        }
 
         let mut stmt = self.conn.prepare(&sql)?;
 

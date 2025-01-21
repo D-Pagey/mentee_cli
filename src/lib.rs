@@ -49,7 +49,7 @@ enum Commands {
 #[derive(Subcommand, Debug, Clone)]
 enum CallActions {
     /// List all calls
-    List,
+    List { name: Option<String> },
     /// Add a call
     Add { name: String },
     /// Delete a call
@@ -155,8 +155,11 @@ pub fn run() -> Result<(), MenteeError> {
             Err(err) => eprintln!("{err}"),
         },
         Commands::Calls { action } => match action {
-            CallActions::List => {
-                if let Err(err) = call_service.get_all_calls().and_then(render_calls_table) {
+            CallActions::List { name } => {
+                if let Err(err) = call_service
+                    .get_all_calls(name)
+                    .and_then(render_calls_table)
+                {
                     eprintln!("{err}");
                 }
             }
