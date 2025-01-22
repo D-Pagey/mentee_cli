@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::usize;
 
 use crate::utils::{inquire_validate_day, inquire_validate_name};
@@ -5,12 +7,11 @@ use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
 use crate::mentee::{Mentee, Status};
-use dirs::home_dir;
 use inquire::{CustomType, Select, Text};
 use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
-    conn: Connection,
+    conn: Rc<RefCell<Connection>>,
 }
 
 fn select_status() -> Result<Status, MenteeError> {
@@ -22,21 +23,8 @@ fn select_status() -> Result<Status, MenteeError> {
 }
 
 impl MenteeService {
-    pub fn new(test_mode: bool) -> Result<Self, MenteeError> {
+    pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
         // get users home directory
-        let mut db_path = if test_mode {
-            std::env::temp_dir()
-        } else {
-            home_dir().ok_or(MenteeError::HomeDirNotFound)?
-        };
-
-        // specify the db file path
-        db_path.push(".mentees"); // directory to store db
-        std::fs::create_dir_all(&db_path)?; // ensure directory exists
-        db_path.push("mentees.db"); // database file name
-
-        let conn = Connection::open(db_path)?;
-
         let mentees_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY,
@@ -50,9 +38,9 @@ impl MenteeService {
             constants::MENTEE_TABLE
         );
 
-        conn.execute(&mentees_sql, ())?;
+        conn.borrow().execute(&mentees_sql, ())?;
 
-        Ok(MenteeService { conn })
+        Ok(Self { conn })
     }
 
     pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {

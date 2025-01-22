@@ -4,14 +4,14 @@ mod constants;
 mod error;
 mod mentee;
 pub mod mentee_service;
+pub mod mentorship_service;
 mod utils;
 
-use call_service::CallService;
 use clap::{Parser, Subcommand, ValueEnum};
 use cli::{render_calls_table, render_mentees_table};
 use error::MenteeError;
 use mentee::Status;
-use mentee_service::MenteeService;
+use mentorship_service::MentorshipService;
 use rusqlite::Result;
 use utils::{clap_validate_day, clap_validate_name};
 
@@ -104,21 +104,22 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 }
 
 pub fn run() -> Result<(), MenteeError> {
-    let mentee_service = MenteeService::new(false)?;
-    let call_service = CallService::new()?;
+    let mentorship_service = MentorshipService::new();
 
     let cli = Cli::parse();
 
     match cli.command {
         Commands::List { all } => {
-            if let Err(err) = mentee_service
+            // TODO: change to helper method in mentorship service
+            if let Err(err) = mentorship_service
+                .mentee_service()
                 .get_all_mentees(all)
                 .and_then(render_mentees_table)
             {
                 eprintln!("{err}");
             }
         }
-        Commands::Add => match mentee_service.add_mentee() {
+        Commands::Add => match mentorship_service.mentee_service().add_mentee() {
             Ok(mentee) => println!("Added Mentee: {}", mentee.name),
             Err(err) => eprintln!("{err}"),
         },
@@ -136,9 +137,13 @@ pub fn run() -> Result<(), MenteeError> {
             .any(Option::is_some);
 
             let result = if has_any_flags {
-                mentee_service.update_mentee_with_flags(update_args)
+                mentorship_service
+                    .mentee_service()
+                    .update_mentee_with_flags(update_args)
             } else {
-                mentee_service.update_mentee_interactive(update_args.name)
+                mentorship_service
+                    .mentee_service()
+                    .update_mentee_interactive(update_args.name)
             };
 
             match result {
@@ -146,31 +151,38 @@ pub fn run() -> Result<(), MenteeError> {
                 Err(err) => eprintln!("{err}"),
             }
         }
-        Commands::Delete { name } => match mentee_service.delete_mentee(name) {
-            Ok(deleted) => println!("Deleted Mentee: {}", deleted),
-            Err(err) => eprintln!("{err}"),
-        },
-        Commands::Count { column } => match mentee_service.get_mentee_count(column) {
-            Ok(result) => println!("{result}"),
-            Err(err) => eprintln!("{err}"),
-        },
+        Commands::Delete { name } => {
+            match mentorship_service.mentee_service().delete_mentee(name) {
+                Ok(deleted) => println!("Deleted Mentee: {}", deleted),
+                Err(err) => eprintln!("{err}"),
+            }
+        }
+        Commands::Count { column } => {
+            match mentorship_service.mentee_service().get_mentee_count(column) {
+                Ok(result) => println!("{result}"),
+                Err(err) => eprintln!("{err}"),
+            }
+        }
         Commands::Calls { action } => match action {
             CallActions::List { name } => {
-                if let Err(err) = call_service
+                if let Err(err) = mentorship_service
+                    .call_service()
                     .get_all_calls(name)
                     .and_then(render_calls_table)
                 {
                     eprintln!("{err}");
                 }
             }
-            CallActions::Add { name } => match call_service.add_call(name) {
+            CallActions::Add { name } => match mentorship_service.call_service().add_call(name) {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
-            CallActions::Delete { call_id } => match call_service.delete_call(call_id) {
-                Ok(deleted) => println!("{deleted}"),
-                Err(err) => eprintln!("{err}"),
-            },
+            CallActions::Delete { call_id } => {
+                match mentorship_service.call_service().delete_call(call_id) {
+                    Ok(deleted) => println!("{deleted}"),
+                    Err(err) => eprintln!("{err}"),
+                }
+            }
         },
     };
 

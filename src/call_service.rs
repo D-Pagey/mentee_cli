@@ -1,11 +1,6 @@
 use crate::{constants, error::MenteeError};
-use dirs::home_dir;
 use inquire::{DateSelect, Text};
 use rusqlite::{Connection, OptionalExtension};
-
-pub struct CallService {
-    conn: Connection,
-}
 
 #[derive(Debug)]
 pub struct Call {
@@ -23,17 +18,13 @@ pub struct CallWithMenteeName {
     pub notes: String,
 }
 
-impl CallService {
+pub struct CallService<'a> {
+    conn: &'a Connection,
+}
+
+impl<'a> CallService<'a> {
     // TODO: change error to a CallError
-    pub fn new() -> Result<Self, MenteeError> {
-        let mut db_path = home_dir().ok_or(MenteeError::HomeDirNotFound)?;
-
-        db_path.push(".mentees"); // directory to store db
-        std::fs::create_dir_all(&db_path)?; // ensure directory exists
-        db_path.push("mentees.db"); // database file name
-
-        let conn = Connection::open(db_path)?;
-
+    pub fn new(conn: &'a Connection) -> Result<Self, MenteeError> {
         let calls_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
