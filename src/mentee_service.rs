@@ -68,7 +68,7 @@ impl MenteeService {
             notes,
         };
 
-        let result = self.conn.execute(
+        let result = self.conn.borrow().execute(
             &format!(
                 "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 constants::MENTEE_TABLE
@@ -94,7 +94,7 @@ impl MenteeService {
     }
 
     pub fn delete_mentee(&self, name: String) -> Result<usize, MenteeError> {
-        let deleted = self.conn.execute(
+        let deleted = self.conn.borrow().execute(
             &format!("DELETE FROM {} WHERE name = :name", constants::MENTEE_TABLE),
             &[(":name", &name.to_lowercase())],
         )?;
@@ -160,7 +160,7 @@ impl MenteeService {
         // Append the mentee's name as the last parameter.
         params_refs.push(&update_args.name);
 
-        let rows_affected = self.conn.execute(&sql, params_refs.as_slice())?;
+        let rows_affected = self.conn.borrow().execute(&sql, params_refs.as_slice())?;
 
         if rows_affected == 0 {
             return Err(MenteeError::NotFound(update_args.name));
@@ -247,7 +247,7 @@ impl MenteeService {
         let params_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
 
         // Execute the SQL query
-        let updated = self.conn.execute(&sql, params_refs.as_slice())?;
+        let updated = self.conn.borrow().execute(&sql, params_refs.as_slice())?;
 
         Ok((updated, new_name))
     }
@@ -296,7 +296,8 @@ impl MenteeService {
             sql
         );
 
-        let mut stmt = self.conn.prepare(&sql)?;
+        let binding = self.conn.borrow();
+        let mut stmt = binding.prepare(&sql)?;
         let mentee_iter = stmt.query_map([], |row| {
             let status_str: String = row.get(5)?;
 
@@ -350,7 +351,7 @@ impl MenteeService {
 
         sql = format!("{} WHERE status != 'archived'", sql);
 
-        let result: i64 = self.conn.query_row(&sql, [], |row| row.get(0))?;
+        let result: i64 = self.conn.borrow().query_row(&sql, [], |row| row.get(0))?;
 
         Ok(format!("{}{}", message, result))
     }

@@ -1,14 +1,14 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use dirs::home_dir;
 use rusqlite::Connection;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use crate::{call_service::CallService, error::MenteeError, mentee_service::MenteeService};
 
 pub struct MentorshipService {
-    mentee_service: MenteeService,
-    call_service: CallService,
-    conn: Rc<RefCell<Connection>, // Owns the connection
+    pub mentee_service: MenteeService,
+    pub call_service: CallService,
+    conn: Rc<RefCell<Connection>>, // Owns the connection
 }
 
 impl MentorshipService {
@@ -18,7 +18,6 @@ impl MentorshipService {
         db_path.push(".mentees"); // Directory to store db
         std::fs::create_dir_all(&db_path)?; // Ensure directory exists
         db_path.push("mentees.db"); // Database file name
-
 
         // Wrap the connection so sub‐services can clone it
         let conn = Rc::new(RefCell::new(Connection::open(db_path)?));

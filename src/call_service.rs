@@ -1,6 +1,8 @@
 use crate::{constants, error::MenteeError};
 use inquire::{DateSelect, Text};
 use rusqlite::{Connection, OptionalExtension};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Call {
@@ -18,13 +20,13 @@ pub struct CallWithMenteeName {
     pub notes: String,
 }
 
-pub struct CallService<'a> {
-    conn: &'a Connection,
+pub struct CallService {
+    conn: Rc<RefCell<Connection>>,
 }
 
-impl<'a> CallService<'a> {
+impl CallService {
     // TODO: change error to a CallError
-    pub fn new(conn: &'a Connection) -> Result<Self, MenteeError> {
+    pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
         let calls_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +38,7 @@ impl<'a> CallService<'a> {
             constants::MENTEE_TABLE
         );
 
-        conn.execute(&calls_sql, ())?;
+        conn.borrow().execute(&calls_sql, ())?;
 
         Ok(CallService { conn })
     }
@@ -78,7 +80,8 @@ impl<'a> CallService<'a> {
             sql.push_str(format!("WHERE calls.mentee_id = {}", &mentee_id).as_str());
         }
 
-        let mut stmt = self.conn.prepare(&sql)?;
+        let binding = self.conn.borrow();
+        let mut stmt = binding.prepare(&sql)?;
 
         let call_iter = stmt.query_map([], |row| {
             Ok(CallWithMenteeName {
@@ -105,6 +108,7 @@ impl<'a> CallService<'a> {
         );
 
         self.conn
+            .borrow()
             .query_row(&sql, &[name], |row| row.get(0))
             .optional()
     }
@@ -126,7 +130,7 @@ impl<'a> CallService<'a> {
             .prompt()
             .expect("Failed to read notes");
 
-        let result = self.conn.execute(
+        let result = self.conn.borrow().execute(
             &format!(
                 "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
                 constants::CALLS_TABLE
@@ -141,7 +145,7 @@ impl<'a> CallService<'a> {
     }
 
     pub fn delete_call(&self, call_id: u32) -> Result<String, MenteeError> {
-        let deleted = self.conn.execute(
+        let deleted = self.conn.borrow().execute(
             &format!("DELETE FROM {} WHERE id = :call_id", constants::CALLS_TABLE),
             &[(":call_id", &call_id)],
         )?;
