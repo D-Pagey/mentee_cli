@@ -1,9 +1,7 @@
-pub mod call_service;
 mod cli;
 mod constants;
 mod error;
 mod mentee;
-pub mod mentee_service;
 pub mod mentorship_service;
 mod utils;
 

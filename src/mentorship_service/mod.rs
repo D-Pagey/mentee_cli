@@ -1,9 +1,14 @@
+pub mod call_service;
+pub mod mentee_service;
+
+use call_service::CallService;
 use dirs::home_dir;
+use mentee_service::MenteeService;
 use rusqlite::Connection;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{call_service::CallService, error::MenteeError, mentee_service::MenteeService};
+use crate::error::MenteeError;
 
 pub struct MentorshipService {
     pub mentee_service: MenteeService,

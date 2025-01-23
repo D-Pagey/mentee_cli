@@ -2,9 +2,9 @@ use chrono::NaiveDate;
 use cli_table::{format::Justify, Cell, Color, Style, Table};
 
 use crate::{
-    call_service::CallWithMenteeName,
     error::MenteeError,
     mentee::{Mentee, Status},
+    mentorship_service::call_service::CallWithMenteeName,
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
