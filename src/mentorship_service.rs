@@ -8,7 +8,6 @@ use crate::{call_service::CallService, error::MenteeError, mentee_service::Mente
 pub struct MentorshipService {
     pub mentee_service: MenteeService,
     pub call_service: CallService,
-    conn: Rc<RefCell<Connection>>, // Owns the connection
 }
 
 impl MentorshipService {
@@ -26,7 +25,6 @@ impl MentorshipService {
         let call_service = CallService::new(conn.clone())?;
 
         Ok(Self {
-            conn,
             mentee_service,
             call_service,
         })
