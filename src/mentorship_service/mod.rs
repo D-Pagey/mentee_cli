@@ -1,9 +1,11 @@
 pub mod call_service;
 pub mod mentee_service;
+pub mod payment_service;
 
 use call_service::CallService;
 use dirs::home_dir;
 use mentee_service::MenteeService;
+use payment_service::PaymentService;
 use rusqlite::Connection;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -13,6 +15,7 @@ use crate::error::MenteeError;
 pub struct MentorshipService {
     pub mentee_service: MenteeService,
     pub call_service: CallService,
+    pub payment_service: PaymentService,
 }
 
 impl MentorshipService {
@@ -35,10 +38,12 @@ impl MentorshipService {
 
         let mentee_service = MenteeService::new(conn.clone())?;
         let call_service = CallService::new(conn.clone())?;
+        let payment_service = PaymentService::new(conn.clone())?;
 
         Ok(Self {
             mentee_service,
             call_service,
+            payment_service,
         })
     }
 }

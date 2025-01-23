@@ -40,7 +40,7 @@ impl CallService {
 
         conn.borrow().execute(&calls_sql, ())?;
 
-        Ok(CallService { conn })
+        Ok(Self { conn })
     }
 
     pub fn get_all_calls(

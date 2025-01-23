@@ -24,7 +24,6 @@ fn select_status() -> Result<Status, MenteeError> {
 
 impl MenteeService {
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
-        // get users home directory
         let mentees_sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY,
