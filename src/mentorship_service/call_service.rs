@@ -35,7 +35,7 @@ impl CallService {
             notes TEXT,
             FOREIGN KEY (mentee_id) REFERENCES {} (id))",
             constants::CALLS_TABLE,
-            constants::MENTEE_TABLE
+            constants::MENTEES_TABLE
         );
 
         conn.borrow().execute(&calls_sql, ())?;
@@ -62,7 +62,7 @@ impl CallService {
                 calls.mentee_id = mentees.id
             ",
             constants::CALLS_TABLE,
-            constants::MENTEE_TABLE
+            constants::MENTEES_TABLE
         );
 
         if let Some(name) = name {
@@ -104,7 +104,7 @@ impl CallService {
     fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
         let sql = format!(
             "SELECT id FROM {} WHERE name = ? LIMIT 1",
-            constants::MENTEE_TABLE,
+            constants::MENTEES_TABLE,
         );
 
         self.conn

@@ -34,7 +34,7 @@ impl MenteeService {
             status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
             payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31),
             notes TEXT)",
-            constants::MENTEE_TABLE
+            constants::MENTEES_TABLE
         );
 
         conn.borrow().execute(&mentees_sql, ())?;
@@ -70,7 +70,7 @@ impl MenteeService {
         let result = self.conn.borrow().execute(
             &format!(
                 "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                constants::MENTEE_TABLE
+                constants::MENTEES_TABLE
             ),
             (
                 &mentee.name,
@@ -94,7 +94,10 @@ impl MenteeService {
 
     pub fn delete_mentee(&self, name: String) -> Result<usize, MenteeError> {
         let deleted = self.conn.borrow().execute(
-            &format!("DELETE FROM {} WHERE name = :name", constants::MENTEE_TABLE),
+            &format!(
+                "DELETE FROM {} WHERE name = :name",
+                constants::MENTEES_TABLE
+            ),
             &[(":name", &name.to_lowercase())],
         )?;
 
@@ -148,7 +151,7 @@ impl MenteeService {
 
         let sql = format!(
             "UPDATE {} SET {} WHERE name = ?",
-            constants::MENTEE_TABLE,
+            constants::MENTEES_TABLE,
             updates_str
         );
 
@@ -235,7 +238,7 @@ impl MenteeService {
         // Construct the SQL query
         let sql = format!(
             "UPDATE {} SET {} WHERE name = ?",
-            constants::MENTEE_TABLE,
+            constants::MENTEES_TABLE,
             updates_str
         );
 
@@ -277,7 +280,7 @@ impl MenteeService {
     }
 
     pub fn get_all_mentees(&self, show_all: bool) -> Result<Vec<Mentee>, MenteeError> {
-        let mut sql = format!("SELECT * FROM {}", constants::MENTEE_TABLE);
+        let mut sql = format!("SELECT * FROM {}", constants::MENTEES_TABLE);
 
         if !show_all {
             sql = format!("{} WHERE status != 'archived'", sql)
