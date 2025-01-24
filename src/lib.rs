@@ -6,7 +6,7 @@ pub mod mentorship_service;
 mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use cli::{render_calls_table, render_mentees_table};
+use cli::{render_calls_table, render_mentees_table, render_payments_table};
 use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
@@ -42,6 +42,11 @@ enum Commands {
         #[command(subcommand)]
         action: CallActions,
     },
+    /// Manage payments
+    Payments {
+        #[command(subcommand)]
+        action: PaymentActions,
+    },
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -52,6 +57,16 @@ enum CallActions {
     Add { name: String },
     /// Delete a call
     Delete { call_id: u32 },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum PaymentActions {
+    /// List all calls
+    List { name: Option<String> },
+    /// Add a call
+    Add { name: String },
+    /// Delete a call
+    Delete { payment_id: u32 },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -178,6 +193,21 @@ pub fn run() -> Result<(), MenteeError> {
                     Ok(deleted) => println!("{deleted}"),
                     Err(err) => eprintln!("{err}"),
                 }
+            }
+        },
+        Commands::Payments { action } => match action {
+            PaymentActions::List { name: _ } => {
+                if let Err(err) = mentorship_service
+                    .payment_service
+                    .get_payments()
+                    .and_then(render_payments_table)
+                {
+                    eprintln!("{err}");
+                }
+            }
+            PaymentActions::Add { name } => println!("{name}"),
+            PaymentActions::Delete { payment_id } => {
+                println!("delete payment {}", payment_id)
             }
         },
     };

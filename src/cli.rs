@@ -4,7 +4,7 @@ use cli_table::{format::Justify, Cell, Color, Style, Table};
 use crate::{
     error::MenteeError,
     mentee::{Mentee, Status},
-    mentorship_service::call_service::CallWithMenteeName,
+    mentorship_service::{call_service::CallWithMenteeName, payment_service::Payment},
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
@@ -90,6 +90,29 @@ pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
     rows
 }
 
+pub fn format_payments(payments: Vec<Payment>) -> Vec<Vec<String>> {
+    let rows: Vec<Vec<String>> = payments
+        .into_iter()
+        .map(|payment| {
+            let formatted_date =
+                format_date(&payment.date).unwrap_or_else(|_| payment.date.clone());
+
+            let mentee = payment
+                .mentee_name
+                .unwrap_or_else(|| payment.mentee_id.to_string());
+
+            vec![
+                payment.id.to_string(),
+                capitalize_first_letter_of_each_word(&mentee),
+                formatted_date,
+                payment.amount.to_string(),
+            ]
+        })
+        .collect();
+
+    rows
+}
+
 pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
     let rows = format_mentees(mentees);
 
@@ -143,6 +166,34 @@ pub fn render_calls_table(calls: Vec<CallWithMenteeName>) -> Result<(), MenteeEr
             "Notes".cell().bold(true),
         ])
         .foreground_color(Some(Color::Yellow))
+        .bold(true);
+
+    let table_display = table.display()?;
+
+    Ok(println!("{}", table_display))
+}
+
+pub fn render_payments_table(payments: Vec<Payment>) -> Result<(), MenteeError> {
+    let rows = format_payments(payments);
+
+    let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|cell| cell.cell().justify(Justify::Right))
+                .collect()
+        })
+        .collect();
+
+    let table = cell_rows
+        .table()
+        .title(vec![
+            "Payment Id".cell().bold(true),
+            "Mentee".cell().bold(true),
+            "Date".cell().bold(true),
+            "Amount".cell().bold(true),
+        ])
+        .foreground_color(Some(Color::Green))
         .bold(true);
 
     let table_display = table.display()?;
