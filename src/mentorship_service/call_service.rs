@@ -60,8 +60,6 @@ impl CallService {
                 {}
             ON
                 calls.mentee_id = mentees.id
-            ORDER BY 
-                calls.date DESC
             ",
             constants::CALLS_TABLE,
             constants::MENTEE_TABLE
@@ -77,8 +75,10 @@ impl CallService {
                 }
             };
 
-            sql.push_str(format!("WHERE calls.mentee_id = {}", &mentee_id).as_str());
+            sql.push_str(format!("WHERE calls.mentee_id = {} ", &mentee_id).as_str());
         }
+
+        sql.push_str("ORDER BY calls.date DESC");
 
         let binding = self.conn.borrow();
         let mut stmt = binding.prepare(&sql)?;
