@@ -205,7 +205,12 @@ pub fn run() -> Result<(), MenteeError> {
                     eprintln!("{err}");
                 }
             }
-            PaymentActions::Add { name } => println!("{name}"),
+            PaymentActions::Add { name } => {
+                match mentorship_service.payment_service.add_payment(name) {
+                    Ok(success) => println!("{success}"),
+                    Err(err) => eprintln!("{err}"),
+                }
+            }
             PaymentActions::Delete { payment_id } => {
                 println!("delete payment {}", payment_id)
             }
