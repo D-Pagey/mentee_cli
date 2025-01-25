@@ -123,4 +123,19 @@ impl PaymentService {
             Err(err) => Err(MenteeError::from(err)),
         }
     }
+
+    pub fn delete_payment(self, id: u32) -> Result<String, MenteeError> {
+        let sql = format!(
+            "DELETE FROM {} WHERE id = :payment_id",
+            constants::PAYMENTS_TABLE
+        );
+
+        let deleted = self.conn.borrow().execute(&sql, &[(":payment_id", &id)])?;
+
+        if deleted > 0 {
+            Ok(format!("Payment with id = {id} deleted."))
+        } else {
+            Ok(format!("Couldn't find payment with id of {id}"))
+        }
+    }
 }
