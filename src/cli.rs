@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use cli_table::{format::Justify, Cell, Color, Style, Table};
+use colored::Colorize;
 
 use crate::{
     error::MenteeError,
@@ -54,13 +55,21 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
                 .call_count
                 .map(|count| count.to_string())
                 .unwrap_or_else(|| "".to_string());
+
             let payment_count = mentee
                 .payment_count
                 .map(|count| count.to_string())
                 .unwrap_or_else(|| "".to_string());
+
             let remaining_calls = mentee
                 .remaining_calls
-                .map(|count| count.to_string())
+                .map(|count| {
+                    if count > 0 {
+                        format!("{}", count.to_string().green())
+                    } else {
+                        format!("{}", count.to_string().red())
+                    }
+                })
                 .unwrap_or_else(|| "".to_string());
 
             vec![

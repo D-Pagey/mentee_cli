@@ -8,6 +8,7 @@ description = "CLI to manage mentees"
 chrono = "0.4.39"
 clap = { version = "4.5.13", features = ["derive"] }
 cli-table = "0.4.9"
+colored = "3.0.0"
 dirs = "5.0.1"
 inquire = { version = "0.7.5", features = ["date"] }
 rusqlite = { version = "0.32.0", features = ["bundled"] }
