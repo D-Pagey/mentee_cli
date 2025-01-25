@@ -3,8 +3,10 @@ use cli_table::{format::Justify, Cell, Color, Style, Table};
 
 use crate::{
     error::MenteeError,
-    mentee::{Mentee, Status},
-    mentorship_service::{call_service::CallWithMenteeName, payment_service::Payment},
+    mentee::Status,
+    mentorship_service::{
+        call_service::CallWithMenteeName, mentee_service::Mentee, payment_service::Payment,
+    },
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
@@ -48,6 +50,19 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
         .map(|mentee| {
             let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
 
+            let call_count = mentee
+                .call_count
+                .map(|count| count.to_string())
+                .unwrap_or_else(|| "".to_string());
+            let payment_count = mentee
+                .payment_count
+                .map(|count| count.to_string())
+                .unwrap_or_else(|| "".to_string());
+            let remaining_calls = mentee
+                .remaining_calls
+                .map(|count| count.to_string())
+                .unwrap_or_else(|| "".to_string());
+
             vec![
                 capitalize_first_letter_of_each_word(&mentee.name),
                 mentee.calls.to_string(),
@@ -57,6 +72,9 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
                 add_ordinal_suffix(mentee.payment_day),
                 mentee.notes,
+                call_count,
+                payment_count,
+                remaining_calls,
             ]
         })
         .collect();
@@ -136,6 +154,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
             "Status".cell().bold(true),
             "Payment Day".cell().bold(true),
             "Notes".cell().bold(true),
+            "Calls".cell().bold(true),
+            "Payments".cell().bold(true),
+            "Remaining Calls".cell().bold(true),
         ])
         .foreground_color(Some(Color::Blue))
         .bold(true);
@@ -215,6 +236,9 @@ mod tests {
             status: Status::Warm,
             payment_day: 5,
             notes: "CET timezone".to_string(),
+            call_count: Some(10),
+            payment_count: Some(0),
+            remaining_calls: Some(0),
         }];
 
         let rows = format_mentees(mentees);

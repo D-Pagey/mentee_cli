@@ -1,15 +1,5 @@
 use clap::ValueEnum;
 
-pub struct Mentee {
-    pub name: String,
-    pub calls: u32,
-    pub status: Status,
-    pub gross: u32,
-    pub net: u32,
-    pub payment_day: u32,
-    pub notes: String,
-}
-
 #[derive(Debug, Clone, ValueEnum, PartialEq)]
 pub enum Status {
     Archived,

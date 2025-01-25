@@ -6,12 +6,25 @@ use crate::utils::{inquire_validate_day, inquire_validate_name};
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
-use crate::mentee::{Mentee, Status};
+use crate::mentee::Status;
 use inquire::{CustomType, Select, Text};
 use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
     conn: Rc<RefCell<Connection>>,
+}
+
+pub struct Mentee {
+    pub name: String,
+    pub calls: u32,
+    pub status: Status,
+    pub gross: u32,
+    pub net: u32,
+    pub payment_day: u32,
+    pub notes: String,
+    pub call_count: Option<i64>,
+    pub payment_count: Option<i64>,
+    pub remaining_calls: Option<i64>,
 }
 
 fn select_status() -> Result<Status, MenteeError> {
@@ -65,6 +78,9 @@ impl MenteeService {
             status,
             payment_day,
             notes,
+            call_count: None,
+            payment_count: None,
+            remaining_calls: None,
         };
 
         let result = self.conn.borrow().execute(
@@ -280,14 +296,34 @@ impl MenteeService {
     }
 
     pub fn get_all_mentees(&self, show_all: bool) -> Result<Vec<Mentee>, MenteeError> {
-        let mut sql = format!("SELECT * FROM {}", constants::MENTEES_TABLE);
+        let mut sql = format!(
+            "
+            SELECT 
+                mentees.*,
+                COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
+                COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
+                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
+            FROM 
+                {}
+            LEFT JOIN
+                {} ON calls.mentee_id = mentees.id
+            LEFT JOIN 
+                {} ON payments.mentee_id = mentees.id
+            ",
+            constants::MENTEES_TABLE,
+            constants::CALLS_TABLE,
+            constants::PAYMENTS_TABLE
+        );
 
         if !show_all {
             sql = format!("{} WHERE status != 'archived'", sql)
         }
 
         sql = format!(
-            "{} ORDER BY 
+            "{} 
+            GROUP BY
+                mentees.id
+            ORDER BY 
                 CASE status 
                     WHEN 'hot' THEN 1
                     WHEN 'warm' THEN 2
@@ -313,6 +349,9 @@ impl MenteeService {
                 status,
                 payment_day: row.get(6)?,
                 notes: row.get(7)?,
+                call_count: row.get(8)?,
+                payment_count: row.get(9)?,
+                remaining_calls: row.get(10)?,
             })
         })?;
 
