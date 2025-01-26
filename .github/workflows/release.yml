@@ -83,8 +83,14 @@ jobs:
       run: |
         git clone https://x-access-token:$GIT_AUTH_TOKEN@github.com/d-pagey/homebrew-mentees.git
         cd homebrew-mentees
+
+        # update url field
         sed -i "s|url \".*\"|url \"https://github.com/d-pagey/mentee_cli/releases/download/${{ github.ref_name }}/mentees-macos.tar.gz\"|" mentees.rb
+        # update sha
         sed -i "s|sha256 \".*\"|sha256 \"${{ steps.sha256.outputs.sha256 }}\"|" mentees.rb
+        # update version
+        sed -i "s|version \".*\"|version \"${{ github.ref_name#v }}\"|" mentees.rb
+
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         git add mentees.rb
