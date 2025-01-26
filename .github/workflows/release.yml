@@ -13,6 +13,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Extract version from tag
+      id: version
+      run: |
+        # Extract version from the tag (e.g., v1.2.3 -> 1.2.3)
+        TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+        echo "Version: $TAG_VERSION"
+        echo "::set-output name=version::$TAG_VERSION"
+
+    - name: Update Cargo.toml version
+      run: |
+        TAG_VERSION="${GITHUB_REF#refs/tags/v}" # Strip the 'v' prefix
+        sed -i "s/^version = \".*\"/version = \"$TAG_VERSION\"/" Cargo.toml
+        echo "Updated Cargo.toml to version $TAG_VERSION"
+
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -31,6 +45,14 @@ jobs:
       run: |
         sha256sum dist/mentees-macos.tar.gz > dist/sha256.txt
         echo "::set-output name=sha256::$(cut -d ' ' -f 1 dist/sha256.txt)"
+
+    - name: Commit updated Cargo.toml
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add Cargo.toml
+        git commit -m "Update Cargo.toml to version ${{ steps.version.outputs.version }}"
+        git push
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
