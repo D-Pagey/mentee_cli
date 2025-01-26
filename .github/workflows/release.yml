@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
     - name: Checkout repository
@@ -22,13 +22,12 @@ jobs:
         # Extract version from the tag (e.g., v1.2.3 -> 1.2.3)
         TAG_VERSION="${GITHUB_REF#refs/tags/v}"
         echo "Version: $TAG_VERSION"
-        echo "::set-output name=version::$TAG_VERSION"
+        echo "version=$TAG_VERSION" >> $GITHUB_ENV
 
     - name: Update Cargo.toml version
       run: |
-        TAG_VERSION="${GITHUB_REF#refs/tags/v}" # Strip the 'v' prefix
-        sed -i "s/^version = \".*\"/version = \"$TAG_VERSION\"/" Cargo.toml
-        echo "Updated Cargo.toml to version $TAG_VERSION"
+        sed -i "" "s/^version = \".*\"/version = \"${{ env.version }}\"/" Cargo.toml
+        echo "Updated Cargo.toml to version ${{ env.version }}"
 
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
@@ -36,18 +35,19 @@ jobs:
         toolchain: stable
 
     - name: Build CLI
-      run: cargo build --release
+      run: cargo build --release --target aarch64-apple-darwin
 
     - name: Create tarball
       run: |
         mkdir dist
-        tar -czvf dist/mentees-macos.tar.gz -C target/release mentees
+        chmod +x target/aarch64-apple-darwin/release/mentees # do i need this?
+        tar -czvf dist/mentees-macos.tar.gz -C target/aarch64-apple-darwin/release mentees
 
     - name: Calculate SHA256 checksum
       id: sha256
       run: |
-        sha256sum dist/mentees-macos.tar.gz > dist/sha256.txt
-        echo "::set-output name=sha256::$(cut -d ' ' -f 1 dist/sha256.txt)"
+        shasum -a 256 dist/mentees-macos.tar.gz > dist/sha256.txt
+        echo "sha256=$(cut -d ' ' -f 1 dist/sha256.txt)" >> $GITHUB_ENV
 
     - name: Commit updated Cargo.toml to main
       run: |
@@ -62,7 +62,7 @@ jobs:
 
         # Stage and commit changes
         git add Cargo.toml
-        git commit -m "Update Cargo.toml to version ${{ steps.version.outputs.version }}"
+        git commit -m "Update Cargo.toml to version ${{ env.version }}"
 
         # Push changes back to main
         git push origin main
@@ -73,7 +73,7 @@ jobs:
         files: dist/mentees-macos.tar.gz
         body: |
           🚀 **New Release: ${{ github.ref_name }}**
-          - **SHA256:** ${{ steps.sha256.outputs.sha256 }}
+          - **SHA256:** ${{ env.sha256 }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,20 +81,17 @@ jobs:
       env:
         GIT_AUTH_TOKEN: ${{ secrets.HOMEBREW_WRITE_ACCESS }}
       run: |
-        # Extract the version by stripping the 'v' prefix from the tag name
-        VERSION=${GITHUB_REF#refs/tags/v}
-
         git clone https://x-access-token:$GIT_AUTH_TOKEN@github.com/d-pagey/homebrew-mentees.git
         cd homebrew-mentees
 
         # Update URL
-        sed -i "s|url \".*\"|url \"https://github.com/d-pagey/mentee_cli/releases/download/v${VERSION}/mentees-macos.tar.gz\"|" mentees.rb
+        sed -i "" "s|url \".*\"|url \"https://github.com/d-pagey/mentee_cli/releases/download/v${{ env.version }}/mentees-macos.tar.gz\"|" mentees.rb
 
         # Update SHA256
-        sed -i "s|sha256 \".*\"|sha256 \"${{ steps.sha256.outputs.sha256 }}\"|" mentees.rb
+        sed -i "" "s|sha256 \".*\"|sha256 \"${{ env.sha256 }}\"|" mentees.rb
 
         # Update Version
-        sed -i "s|version \".*\"|version \"${VERSION}\"|" mentees.rb
+        sed -i "" "s|version \".*\"|version \"${{ env.version }}\"|" mentees.rb
 
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
