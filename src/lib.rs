@@ -196,10 +196,10 @@ pub fn run() -> Result<(), MenteeError> {
             }
         },
         Commands::Payments { action } => match action {
-            PaymentActions::List { name: _ } => {
+            PaymentActions::List { name } => {
                 if let Err(err) = mentorship_service
                     .payment_service
-                    .get_payments()
+                    .get_payments(name)
                     .and_then(render_payments_table)
                 {
                     eprintln!("{err}");

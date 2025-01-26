@@ -37,7 +37,7 @@ impl PaymentService {
         Ok(Self { conn })
     }
 
-    pub fn get_payments(self) -> Result<Vec<Payment>, MenteeError> {
+    pub fn get_payments(self, name: Option<String>) -> Result<Vec<Payment>, MenteeError> {
         let mut sql = format!(
             "SELECT 
                 payments.id AS payment_id,
@@ -55,6 +55,19 @@ impl PaymentService {
             constants::PAYMENTS_TABLE,
             constants::MENTEES_TABLE
         );
+
+        if let Some(name) = name {
+            let mentee_id = match self.get_mentee_id(&name)? {
+                Some(id) => id,
+                None => {
+                    // TODO: change this to error not OK // or should it be error?
+                    println!("No mentee found with the name '{}'.", name);
+                    return Ok(vec![]); // Return early with an empty vector
+                }
+            };
+
+            sql.push_str(format!("WHERE payments.mentee_id = {} ", &mentee_id).as_str());
+        }
 
         sql.push_str("ORDER BY payments.date DESC");
 
