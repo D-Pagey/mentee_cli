@@ -81,15 +81,20 @@ jobs:
       env:
         GIT_AUTH_TOKEN: ${{ secrets.HOMEBREW_WRITE_ACCESS }}
       run: |
+        # Extract the version by stripping the 'v' prefix from the tag name
+        VERSION=${GITHUB_REF#refs/tags/v}
+
         git clone https://x-access-token:$GIT_AUTH_TOKEN@github.com/d-pagey/homebrew-mentees.git
         cd homebrew-mentees
 
-        # update url field
-        sed -i "s|url \".*\"|url \"https://github.com/d-pagey/mentee_cli/releases/download/${{ github.ref_name }}/mentees-macos.tar.gz\"|" mentees.rb
-        # update sha
+        # Update URL
+        sed -i "s|url \".*\"|url \"https://github.com/d-pagey/mentee_cli/releases/download/v${VERSION}/mentees-macos.tar.gz\"|" mentees.rb
+
+        # Update SHA256
         sed -i "s|sha256 \".*\"|sha256 \"${{ steps.sha256.outputs.sha256 }}\"|" mentees.rb
-        # update version
-        sed -i "s|version \".*\"|version \"${{ github.ref_name#v }}\"|" mentees.rb
+
+        # Update Version
+        sed -i "s|version \".*\"|version \"${VERSION}\"|" mentees.rb
 
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
