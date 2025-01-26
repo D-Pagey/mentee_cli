@@ -30,7 +30,7 @@ jobs:
         echo "Updated Cargo.toml to version ${{ env.version }}"
 
     - name: Set up Rust
-      uses: actions-rs/toolchain@v1
+      uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: stable
 
