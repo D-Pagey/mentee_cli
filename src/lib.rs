@@ -29,6 +29,8 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         all: bool,
     },
+    /// View more details of a mentee
+    View { name: String },
     /// Adds a new mentee
     Add,
     /// Updates an existing mentee
@@ -131,6 +133,9 @@ pub fn run() -> Result<(), MenteeError> {
             {
                 eprintln!("{err}");
             }
+        }
+        Commands::View { name } => {
+            println!("{name}")
         }
         Commands::Add => match mentorship_service.mentee_service.add_mentee() {
             Ok(mentee) => println!("Added Mentee: {}", mentee.name),
