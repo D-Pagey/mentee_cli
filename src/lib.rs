@@ -6,7 +6,7 @@ pub mod mentorship_service;
 mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use cli::{render_calls_table, render_mentees_table, render_payments_table};
+use cli::{display_mentee, render_calls_table, render_mentees_table, render_payments_table};
 use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
@@ -134,9 +134,10 @@ pub fn run() -> Result<(), MenteeError> {
                 eprintln!("{err}");
             }
         }
-        Commands::View { name } => {
-            println!("{name}")
-        }
+        Commands::View { name } => match mentorship_service.mentee_service.get_mentee(name) {
+            Ok(mentee) => display_mentee(mentee),
+            Err(err) => eprintln!("{err}"),
+        },
         Commands::Add => match mentorship_service.mentee_service.add_mentee() {
             Ok(mentee) => println!("Added Mentee: {}", mentee.name),
             Err(err) => eprintln!("{err}"),

@@ -231,6 +231,21 @@ pub fn render_payments_table(payments: Vec<Payment>) -> Result<(), MenteeError> 
     Ok(println!("{}", table_display))
 }
 
+pub fn display_mentee(mentee: Mentee) {
+    println!("\nMentee Details:");
+    println!("---------------");
+    println!("Name:             {}", mentee.name);
+    println!("Status:           {:?}", mentee.status);
+    println!("Calls/Month:      {}", mentee.calls);
+    println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
+    println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
+    println!("Remaining Calls:  {}", mentee.remaining_calls.unwrap_or(0));
+    println!("Gross:            ${:.2}", mentee.gross);
+    println!("Net:              ${:.2}", mentee.net);
+
+    println!();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
