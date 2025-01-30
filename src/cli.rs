@@ -239,7 +239,15 @@ pub fn display_mentee(mentee: Mentee) {
     println!("Calls/Month:      {}", mentee.calls);
     println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
     println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
-    println!("Remaining Calls:  {}", mentee.remaining_calls.unwrap_or(0));
+
+    let remaining_calls = mentee.remaining_calls.unwrap_or(0);
+    let remaining_calls_colored = if remaining_calls > 0 {
+        remaining_calls.to_string().green()
+    } else {
+        remaining_calls.to_string().red()
+    };
+
+    println!("Remaining Calls:  {}", remaining_calls_colored);
     println!("Gross:            ${:.2}", mentee.gross);
     println!("Net:              ${:.2}", mentee.net);
 
