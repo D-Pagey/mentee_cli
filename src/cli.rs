@@ -234,7 +234,10 @@ pub fn render_payments_table(payments: Vec<Payment>) -> Result<(), MenteeError> 
 pub fn display_mentee(mentee: Mentee) {
     println!("\nMentee Details:");
     println!("---------------");
-    println!("Name:             {}", mentee.name);
+    println!(
+        "Name:             {}",
+        capitalize_first_letter_of_each_word(&mentee.name)
+    );
     println!("Status:           {:?}", mentee.status);
     println!("Calls/Month:      {}", mentee.calls);
     println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
