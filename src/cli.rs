@@ -49,18 +49,6 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
     let rows: Vec<Vec<String>> = mentees
         .into_iter()
         .map(|mentee| {
-            let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
-
-            let call_count = mentee
-                .call_count
-                .map(|count| count.to_string())
-                .unwrap_or_else(|| "".to_string());
-
-            let payment_count = mentee
-                .payment_count
-                .map(|count| count.to_string())
-                .unwrap_or_else(|| "".to_string());
-
             let remaining_calls = mentee
                 .remaining_calls
                 .map(|count| {
@@ -75,15 +63,9 @@ pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
             vec![
                 capitalize_first_letter_of_each_word(&mentee.name),
                 mentee.calls.to_string(),
-                mentee.gross.to_string(),
-                mentee.net.to_string(),
-                net_per_call.to_string(),
-                capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
-                add_ordinal_suffix(mentee.payment_day),
-                mentee.notes,
-                call_count,
-                payment_count,
                 remaining_calls,
+                capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
+                mentee.notes,
             ]
         })
         .collect();
@@ -157,15 +139,9 @@ pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
         .title(vec![
             "Name".cell().bold(true),
             "Calls / Month".cell().bold(true),
-            "Gross".cell().bold(true),
-            "Net".cell().bold(true),
-            "Net / Call".cell().bold(true),
-            "Status".cell().bold(true),
-            "Payment Day".cell().bold(true),
-            "Notes".cell().bold(true),
-            "Calls".cell().bold(true),
-            "Payments".cell().bold(true),
             "Remaining Calls".cell().bold(true),
+            "Status".cell().bold(true),
+            "Notes".cell().bold(true),
         ])
         .foreground_color(Some(Color::Blue))
         .bold(true);
@@ -242,6 +218,7 @@ pub fn display_mentee(mentee: Mentee) {
     println!("Calls/Month:      {}", mentee.calls);
     println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
     println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
+
     println!(
         "Payment Day:      {}",
         add_ordinal_suffix(mentee.payment_day)
@@ -257,6 +234,9 @@ pub fn display_mentee(mentee: Mentee) {
     println!("Remaining Calls:  {}", remaining_calls_colored);
     println!("Gross:            ${:.2}", mentee.gross);
     println!("Net:              ${:.2}", mentee.net);
+
+    let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
+    println!("Net / Call:       ${:.2}", net_per_call);
 
     println!();
 }
