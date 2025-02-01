@@ -7,6 +7,7 @@ use crate::{
     mentee::Status,
     mentorship_service::{
         call_service::CallWithMenteeName, mentee_service::Mentee, payment_service::Payment,
+        video_service::VideoWithMenteeName,
     },
 };
 
@@ -81,6 +82,23 @@ fn format_date(date_str: &str) -> Result<String, chrono::ParseError> {
     Ok(date.format("%d %b %Y").to_string())
 }
 
+pub fn format_videos(videos: Vec<VideoWithMenteeName>) -> Vec<Vec<String>> {
+    let rows: Vec<Vec<String>> = videos
+        .into_iter()
+        .map(|video| {
+            let formatted_date = format_date(&video.date).unwrap_or_else(|_| video.date.clone());
+
+            vec![
+                video.id.to_string(),
+                capitalize_first_letter_of_each_word(&video.mentee_name),
+                formatted_date,
+                video.notes,
+            ]
+        })
+        .collect();
+
+    rows
+}
 pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
     let rows: Vec<Vec<String>> = calls
         .into_iter()
@@ -172,6 +190,35 @@ pub fn render_calls_table(calls: Vec<CallWithMenteeName>) -> Result<(), MenteeEr
             "Notes".cell().bold(true),
         ])
         .foreground_color(Some(Color::Yellow))
+        .bold(true);
+
+    let table_display = table.display()?;
+
+    Ok(println!("{}", table_display))
+}
+
+pub fn render_videos_table(videos: Vec<VideoWithMenteeName>) -> Result<(), MenteeError> {
+    let rows = format_videos(videos);
+
+    let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|cell| cell.cell().justify(Justify::Right))
+                .collect()
+        })
+        .collect();
+
+    let table = cell_rows
+        .table()
+        .title(vec![
+            "Video Id".cell().bold(true),
+            "Mentee".cell().bold(true),
+            "Date".cell().bold(true),
+            "Length".cell().bold(true),
+            "Notes".cell().bold(true),
+        ])
+        .foreground_color(Some(Color::Magenta))
         .bold(true);
 
     let table_display = table.display()?;

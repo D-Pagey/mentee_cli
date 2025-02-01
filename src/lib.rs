@@ -6,7 +6,10 @@ pub mod mentorship_service;
 mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use cli::{display_mentee, render_calls_table, render_mentees_table, render_payments_table};
+use cli::{
+    display_mentee, render_calls_table, render_mentees_table, render_payments_table,
+    render_videos_table,
+};
 use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
@@ -44,6 +47,11 @@ enum Commands {
         #[command(subcommand)]
         action: CallActions,
     },
+    /// Manage video analysis
+    Videos {
+        #[command(subcommand)]
+        action: VideoActions,
+    },
     /// Manage payments
     Payments {
         #[command(subcommand)]
@@ -51,6 +59,7 @@ enum Commands {
     },
 }
 
+// TODO: deduplicate
 #[derive(Subcommand, Debug, Clone)]
 enum CallActions {
     /// List all calls
@@ -63,12 +72,22 @@ enum CallActions {
 
 #[derive(Subcommand, Debug, Clone)]
 enum PaymentActions {
-    /// List all calls
+    /// List all payments
     List { name: Option<String> },
-    /// Add a call
+    /// Add a payment
     Add { name: String },
-    /// Delete a call
+    /// Delete a payment
     Delete { payment_id: u32 },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum VideoActions {
+    /// List all analysis videos
+    List { name: Option<String> },
+    /// Add a video analysis
+    Add { name: String },
+    /// Delete a video analysis
+    Delete { video_id: u32 },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -199,6 +218,29 @@ pub fn run() -> Result<(), MenteeError> {
                     Ok(deleted) => println!("{deleted}"),
                     Err(err) => eprintln!("{err}"),
                 }
+            }
+        },
+        Commands::Videos { action } => match action {
+            VideoActions::List { name } => {
+                if let Err(err) = mentorship_service
+                    .video_service
+                    .get_all_videos(name)
+                    .and_then(render_videos_table)
+                {
+                    eprintln!("{err}");
+                }
+            }
+            VideoActions::Add { name } => println!("{name}"),
+            // match mentorship_service.call_service.add_call(name) {
+            //     Ok(success) => println!("{success}"),
+            //     Err(err) => eprintln!("{err}"),
+            // },
+            VideoActions::Delete { video_id } => {
+                println!("{video_id}")
+                // match mentorship_service.call_service.delete_call(call_id) {
+                //     Ok(deleted) => println!("{deleted}"),
+                //     Err(err) => eprintln!("{err}"),
+                // }
             }
         },
         Commands::Payments { action } => match action {
