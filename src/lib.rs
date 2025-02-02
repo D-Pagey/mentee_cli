@@ -235,11 +235,10 @@ pub fn run() -> Result<(), MenteeError> {
                 Err(err) => eprintln!("{err}"),
             },
             VideoActions::Delete { video_id } => {
-                println!("{video_id}")
-                // match mentorship_service.call_service.delete_call(call_id) {
-                //     Ok(deleted) => println!("{deleted}"),
-                //     Err(err) => eprintln!("{err}"),
-                // }
+                match mentorship_service.video_service.delete_video(video_id) {
+                    Ok(deleted) => println!("{deleted}"),
+                    Err(err) => eprintln!("{err}"),
+                }
             }
         },
         Commands::Payments { action } => match action {

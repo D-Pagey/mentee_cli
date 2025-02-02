@@ -147,4 +147,22 @@ impl VideoService {
             Err(err) => Err(MenteeError::from(err)),
         }
     }
+
+    pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {
+        let sql = format!("DELETE FROM {} WHERE id = ?1", constants::VIDEOS_TABLE);
+
+        let deleted = self.conn.borrow().execute(&sql, [&video_id])?;
+
+        if deleted > 0 {
+            Ok(format!(
+                "Deleted video log with id of {}",
+                video_id.to_string()
+            ))
+        } else {
+            Ok(format!(
+                "Could not find video log with id of {}",
+                video_id.to_string()
+            ))
+        }
+    }
 }
