@@ -92,6 +92,7 @@ pub fn format_videos(videos: Vec<VideoWithMenteeName>) -> Vec<Vec<String>> {
                 video.id.to_string(),
                 capitalize_first_letter_of_each_word(&video.mentee_name),
                 formatted_date,
+                video.length.to_string(),
                 video.notes,
             ]
         })

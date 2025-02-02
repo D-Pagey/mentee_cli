@@ -114,4 +114,37 @@ impl VideoService {
 
         Ok(videos)
     }
+
+    pub fn add_video(&self, name: String) -> Result<String, MenteeError> {
+        let mentee_id = match self.get_mentee_id(&name)? {
+            Some(id) => id,
+            None => return Ok(format!("No mentee found with the name '{}'.", name)),
+        };
+
+        let date = DateSelect::new("Enter the date of the video:")
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let length = inquire::prompt_u32("Roughly how long was the video?")?;
+
+        let notes = Text::new("Enter any notes for the video:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .prompt()
+            .expect("Failed to read notes");
+
+        let result = self.conn.borrow().execute(
+            &format!(
+                "INSERT INTO {} (mentee_id, date, length, notes) VALUES (?1, ?2, ?3, ?4)",
+                constants::VIDEOS_TABLE
+            ),
+            (&mentee_id, &date, &length, &notes),
+        );
+
+        match result {
+            Ok(_) => Ok(format!("Video log with {name} on {date} added.")),
+            Err(err) => Err(MenteeError::from(err)),
+        }
+    }
 }

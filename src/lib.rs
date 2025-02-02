@@ -230,11 +230,10 @@ pub fn run() -> Result<(), MenteeError> {
                     eprintln!("{err}");
                 }
             }
-            VideoActions::Add { name } => println!("{name}"),
-            // match mentorship_service.call_service.add_call(name) {
-            //     Ok(success) => println!("{success}"),
-            //     Err(err) => eprintln!("{err}"),
-            // },
+            VideoActions::Add { name } => match mentorship_service.video_service.add_video(name) {
+                Ok(success) => println!("{success}"),
+                Err(err) => eprintln!("{err}"),
+            },
             VideoActions::Delete { video_id } => {
                 println!("{video_id}")
                 // match mentorship_service.call_service.delete_call(call_id) {
