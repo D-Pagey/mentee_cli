@@ -257,35 +257,40 @@ pub fn render_payments_table(payments: Vec<Payment>) -> Result<(), MenteeError> 
 
 pub fn display_mentee(mentee: Mentee) {
     println!("\nMentee Details:");
-    println!("---------------");
+    println!("-----------------------");
     println!(
         "Name:             {}",
         capitalize_first_letter_of_each_word(&mentee.name)
     );
     println!("Status:           {:?}", mentee.status);
-    println!("Calls/Month:      {}", mentee.calls);
-    println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
-    println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
-
     println!(
         "Payment Day:      {}",
         add_ordinal_suffix(mentee.payment_day)
     );
 
+    println!("\nPayment Details:");
+    println!("-----------------------");
+    println!("Gross:            ${:.2}", mentee.gross);
+    println!("Net:              ${:.2}", mentee.net);
+
+    let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
+    println!("Net / Call:       ${:.2}", net_per_call);
+    println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
+
+    println!("\nCall Details:");
+    println!("-----------------------");
+    println!("Calls / Month:    {}", mentee.calls);
+    println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
+    println!("Total Videos:     {}", mentee.video_count.unwrap_or(0));
     let remaining_calls = mentee.remaining_calls.unwrap_or(0);
     let remaining_calls_colored = if remaining_calls > 0 {
         remaining_calls.to_string().green()
     } else {
         remaining_calls.to_string().red()
     };
-
     println!("Remaining Calls:  {}", remaining_calls_colored);
-    println!("Gross:            ${:.2}", mentee.gross);
-    println!("Net:              ${:.2}", mentee.net);
 
-    let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
-    println!("Net / Call:       ${:.2}", net_per_call);
-
+    println!("Notes:            {}", mentee.notes);
     println!();
 }
 
@@ -305,6 +310,7 @@ mod tests {
             notes: "CET timezone".to_string(),
             call_count: Some(10),
             payment_count: Some(0),
+            video_count: Some(0),
             remaining_calls: Some(0),
         }];
 

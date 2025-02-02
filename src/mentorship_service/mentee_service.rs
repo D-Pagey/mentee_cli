@@ -24,6 +24,7 @@ pub struct Mentee {
     pub notes: String,
     pub call_count: Option<i64>,
     pub payment_count: Option<i64>,
+    pub video_count: Option<i64>,
     pub remaining_calls: Option<i64>,
 }
 
@@ -80,6 +81,7 @@ impl MenteeService {
             notes,
             call_count: None,
             payment_count: None,
+            video_count: None,
             remaining_calls: None,
         };
 
@@ -115,6 +117,7 @@ impl MenteeService {
                 mentees.*,
                 COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
                 COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
+                COALESCE(COUNT(DISTINCT videos.id), 0) AS video_count,
                 (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
             FROM 
                 {}
@@ -122,6 +125,8 @@ impl MenteeService {
                 {} ON calls.mentee_id = mentees.id
             LEFT JOIN 
                 {} ON payments.mentee_id = mentees.id
+            LEFT JOIN 
+                {} ON videos.mentee_id = mentees.id
             WHERE 
                 name = ?
             GROUP BY
@@ -129,7 +134,8 @@ impl MenteeService {
             ",
             constants::MENTEES_TABLE,
             constants::CALLS_TABLE,
-            constants::PAYMENTS_TABLE
+            constants::PAYMENTS_TABLE,
+            constants::VIDEOS_TABLE
         );
 
         self.conn
@@ -149,7 +155,8 @@ impl MenteeService {
                     notes: row.get(7)?,
                     call_count: row.get(8)?,
                     payment_count: row.get(9)?,
-                    remaining_calls: row.get(10)?,
+                    video_count: row.get(10)?,
+                    remaining_calls: row.get(11)?,
                 })
             })
             .map_err(MenteeError::DatabaseError)
@@ -347,8 +354,6 @@ impl MenteeService {
             "
             SELECT 
                 mentees.*,
-                COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
-                COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
                 (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
             FROM 
                 {}
@@ -396,9 +401,10 @@ impl MenteeService {
                 status,
                 payment_day: row.get(6)?,
                 notes: row.get(7)?,
-                call_count: row.get(8)?,
-                payment_count: row.get(9)?,
-                remaining_calls: row.get(10)?,
+                remaining_calls: row.get(8)?,
+                video_count: None,
+                payment_count: None,
+                call_count: None,
             })
         })?;
 
