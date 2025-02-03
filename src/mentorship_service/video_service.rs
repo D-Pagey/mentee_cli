@@ -195,7 +195,17 @@ impl VideoService {
             .prompt()
             .expect("Failed to read notes");
 
-        Ok(format!("Updated {date} - {length} - {notes}"))
+        let update_sql = format!(
+            "UPDATE {} SET date = ?1, length = ?2, notes = ?3 WHERE id = ?4",
+            constants::VIDEOS_TABLE
+        );
+
+        let result = self
+            .conn
+            .borrow()
+            .execute(&update_sql, params![date, length, notes, video_id])?;
+
+        Ok(format!("{result} video record updated"))
     }
 
     pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {
