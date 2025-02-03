@@ -1,6 +1,7 @@
 use crate::{constants, error::MenteeError};
+use chrono::NaiveDate;
 use inquire::{DateSelect, Text};
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -146,6 +147,51 @@ impl VideoService {
             Ok(_) => Ok(format!("Video log with {name} on {date} added.")),
             Err(err) => Err(MenteeError::from(err)),
         }
+    }
+
+    fn parse_date_from_db(date_str: &str) -> Result<NaiveDate, chrono::format::ParseError> {
+        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+    }
+
+    pub fn update_video(&self, video_id: u32) -> Result<String, MenteeError> {
+        let sql = format!("SELECT * FROM {} WHERE id = ?1", constants::VIDEOS_TABLE);
+
+        let video_result = self
+            .conn
+            .borrow()
+            .query_row(&sql, params![video_id], |row| {
+                Ok(Video {
+                    id: row.get(0)?,
+                    mentee_id: row.get(1)?,
+                    date: row.get(2)?,
+                    length: row.get(3)?,
+                    notes: row.get(4)?,
+                })
+            });
+
+        let video = match video_result {
+            Ok(video) => video,
+            _ => return Ok(format!("Can't find a video with id of {}", video_id)),
+        };
+
+        // TODO: deal with this
+        let parsed = VideoService::parse_date_from_db(&video.date).unwrap();
+
+        let date = DateSelect::new("Enter the date of the video:")
+            .with_default(parsed)
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        // let length = inquire::prompt_u32("Roughly how long was the video?")?;
+        //
+        // let notes = Text::new("Enter any notes for the video:")
+        //     .with_placeholder("e.g. Discussed project progress ")
+        //     .prompt()
+        //     .expect("Failed to read notes");
+
+        Ok(format!("Updated {date}"))
     }
 
     pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {

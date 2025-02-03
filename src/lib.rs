@@ -78,6 +78,8 @@ enum PaymentActions {
     Add { name: String },
     /// Delete a payment
     Delete { payment_id: u32 },
+    /// Update a payment
+    Update { payment_id: u32 },
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -86,8 +88,10 @@ enum VideoActions {
     List { name: Option<String> },
     /// Add a video analysis
     Add { name: String },
-    /// Delete a video analysis
+    /// Delete a video log
     Delete { video_id: u32 },
+    /// Update a video log
+    Update { video_id: u32 },
 }
 
 #[derive(Parser, Clone, Debug)]
@@ -234,6 +238,12 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
+            VideoActions::Update { video_id } => {
+                match mentorship_service.video_service.update_video(video_id) {
+                    Ok(success) => println!("{success}"),
+                    Err(err) => eprintln!("{err}"),
+                }
+            }
             VideoActions::Delete { video_id } => {
                 match mentorship_service.video_service.delete_video(video_id) {
                     Ok(deleted) => println!("{deleted}"),
@@ -256,6 +266,9 @@ pub fn run() -> Result<(), MenteeError> {
                     Ok(success) => println!("{success}"),
                     Err(err) => eprintln!("{err}"),
                 }
+            }
+            PaymentActions::Update { payment_id } => {
+                println!("{payment_id}")
             }
             PaymentActions::Delete { payment_id } => {
                 match mentorship_service
