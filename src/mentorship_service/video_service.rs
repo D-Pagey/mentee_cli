@@ -1,6 +1,6 @@
 use crate::{constants, error::MenteeError};
 use chrono::NaiveDate;
-use inquire::{DateSelect, Text};
+use inquire::{CustomType, DateSelect, Text};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -184,14 +184,18 @@ impl VideoService {
             .format("%Y-%m-%d")
             .to_string();
 
-        // let length = inquire::prompt_u32("Roughly how long was the video?")?;
-        //
-        // let notes = Text::new("Enter any notes for the video:")
-        //     .with_placeholder("e.g. Discussed project progress ")
-        //     .prompt()
-        //     .expect("Failed to read notes");
+        let length: u32 = CustomType::new("Roughly how long was the video?")
+            .with_starting_input(&video.length.to_string())
+            .prompt()
+            .expect("Failed to read length");
 
-        Ok(format!("Updated {date}"))
+        let notes = Text::new("Enter any notes for the video:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .with_initial_value(&video.notes)
+            .prompt()
+            .expect("Failed to read notes");
+
+        Ok(format!("Updated {date} - {length} - {notes}"))
     }
 
     pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {
