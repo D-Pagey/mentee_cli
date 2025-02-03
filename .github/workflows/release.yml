@@ -64,8 +64,8 @@ jobs:
         git merge --ff-only $GITHUB_SHA || echo "Already up-to-date"
 
         # Stage and commit changes
-        git add Cargo.toml
-        git commit -m "Update Cargo.toml to version ${{ env.version }}"
+        git add Cargo.toml Cargo.lock
+        git commit -m "Update Cargo.toml and Cargo.lock to version ${{ env.version }}"
 
         # Push changes back to main
         git push origin main
