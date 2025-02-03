@@ -24,15 +24,18 @@ jobs:
         echo "Version: $TAG_VERSION"
         echo "version=$TAG_VERSION" >> $GITHUB_ENV
 
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: stable
+
     - name: Update Cargo.toml version
       run: |
         sed -i "" "s/^version = \".*\"/version = \"${{ env.version }}\"/" Cargo.toml
         echo "Updated Cargo.toml to version ${{ env.version }}"
 
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1.0.6
-      with:
-        toolchain: stable
+    - name: Update Cargo.lock
+      run: cargo update -w 
 
     - name: Build CLI
       run: cargo build --release --target aarch64-apple-darwin
