@@ -68,6 +68,8 @@ enum CallActions {
     Add { name: String },
     /// Delete a call
     Delete { call_id: u32 },
+    /// Update a call log
+    Update { call_id: u32 },
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -217,6 +219,12 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
+            CallActions::Update { call_id } => {
+                match mentorship_service.call_service.update_call(call_id) {
+                    Ok(success) => println!("{success}"),
+                    Err(err) => eprintln!("{err}"),
+                }
+            }
             CallActions::Delete { call_id } => {
                 match mentorship_service.call_service.delete_call(call_id) {
                     Ok(deleted) => println!("{deleted}"),
