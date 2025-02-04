@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use chrono::NaiveDate;
 use inquire::{CustomType, DateSelect};
 use rusqlite::{params, Connection, OptionalExtension};
 
@@ -137,10 +138,14 @@ impl PaymentService {
         }
     }
 
+    fn parse_date_from_db(date_str: &str) -> Result<NaiveDate, chrono::format::ParseError> {
+        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+    }
+
     pub fn update_payment(self, payment_id: u32) -> Result<String, MenteeError> {
         let get_sql = format!("SELECT * FROM {} WHERE id = ?1", constants::PAYMENTS_TABLE);
 
-        let payment = self
+        let result = self
             .conn
             .borrow()
             .query_row(&get_sql, params![payment_id], |row| {
@@ -151,9 +156,39 @@ impl PaymentService {
                     amount: row.get(3)?,
                     mentee_name: None,
                 })
-            })?;
+            });
 
-        Ok(format!("Updated payment with id = {}", payment.amount))
+        let payment = match result {
+            Ok(payment) => payment,
+            _ => return Ok(format!("Can't find a payment with id of {}", payment_id)),
+        };
+
+        // TODO: deal with this
+        let parsed = PaymentService::parse_date_from_db(&payment.date).unwrap();
+
+        let date = DateSelect::new("Enter the date of the payment:")
+            .with_default(parsed)
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let amount: u32 = CustomType::new("How much?")
+            .with_starting_input(&payment.amount.to_string())
+            .prompt()
+            .expect("Failed to read amount");
+
+        let update_sql = format!(
+            "UPDATE {} SET date = ?1, amount = ?2 WHERE id = ?3",
+            constants::PAYMENTS_TABLE
+        );
+
+        let result = self
+            .conn
+            .borrow()
+            .execute(&update_sql, params![date, amount, payment_id])?;
+
+        Ok(format!("{result} payment record updated"))
     }
 
     pub fn delete_payment(self, id: u32) -> Result<String, MenteeError> {
