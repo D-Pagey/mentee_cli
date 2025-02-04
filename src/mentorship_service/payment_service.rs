@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use inquire::{CustomType, DateSelect};
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::constants;
 use crate::error::MenteeError;
@@ -135,6 +135,25 @@ impl PaymentService {
             Ok(_) => Ok(format!("Payment with {name} on {date} added.")),
             Err(err) => Err(MenteeError::from(err)),
         }
+    }
+
+    pub fn update_payment(self, payment_id: u32) -> Result<String, MenteeError> {
+        let get_sql = format!("SELECT * FROM {} WHERE id = ?1", constants::PAYMENTS_TABLE);
+
+        let payment = self
+            .conn
+            .borrow()
+            .query_row(&get_sql, params![payment_id], |row| {
+                Ok(Payment {
+                    id: row.get(0)?,
+                    mentee_id: row.get(1)?,
+                    date: row.get(2)?,
+                    amount: row.get(3)?,
+                    mentee_name: None,
+                })
+            })?;
+
+        Ok(format!("Updated payment with id = {}", payment.amount))
     }
 
     pub fn delete_payment(self, id: u32) -> Result<String, MenteeError> {

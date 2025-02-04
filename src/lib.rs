@@ -267,9 +267,13 @@ pub fn run() -> Result<(), MenteeError> {
                     Err(err) => eprintln!("{err}"),
                 }
             }
-            PaymentActions::Update { payment_id } => {
-                println!("{payment_id}")
-            }
+            PaymentActions::Update { payment_id } => match mentorship_service
+                .payment_service
+                .update_payment(payment_id)
+            {
+                Ok(success) => println!("{success}"),
+                Err(err) => eprintln!("{err}"),
+            },
             PaymentActions::Delete { payment_id } => {
                 match mentorship_service
                     .payment_service
