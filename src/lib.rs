@@ -3,6 +3,9 @@ mod constants;
 mod error;
 mod mentee;
 pub mod mentorship_service;
+mod models;
+mod repositories;
+mod services;
 mod utils;
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -14,6 +17,7 @@ use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
 use rusqlite::Result;
+use services::CallService;
 use utils::{clap_validate_day, clap_validate_name};
 
 /// CLI to manage state of mentees
