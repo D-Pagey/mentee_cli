@@ -13,22 +13,11 @@ impl<'a> CallService<'a> {
         }
     }
 
-    pub fn delete_call(&self, call_id: u32) {
-        self.call_repo.delete_call(call_id);
-
-        println!("deleted?")
-
-        // match self.call_repo.delete_call(call_id) {
-        //
-        // }
-        //
-        // if deleted > 0 {
-        //     Ok(format!("Deleted call with id of {}", call_id.to_string()))
-        // } else {
-        //     Ok(format!(
-        //         "Could not find a call with id of {}",
-        //         call_id.to_string()
-        //     ))
-        // }
+    pub fn delete_call(&self, call_id: u32) -> Result<String, String> {
+        match self.call_repo.delete_call(call_id) {
+            Ok(0) => Err(format!("Call with ID {} not found.", call_id)),
+            Ok(_) => Ok(format!("Deleted call {}", call_id)),
+            Err(e) => Err(format!("Database error: {}", e)),
+        }
     }
 }

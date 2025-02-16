@@ -197,20 +197,4 @@ impl CallService {
 
         Ok(format!("{result} call record updated"))
     }
-
-    pub fn delete_call(&self, call_id: u32) -> Result<String, MenteeError> {
-        let deleted = self.conn.borrow().execute(
-            &format!("DELETE FROM {} WHERE id = :call_id", constants::CALLS_TABLE),
-            &[(":call_id", &call_id)],
-        )?;
-
-        if deleted > 0 {
-            Ok(format!("Deleted call with id of {}", call_id.to_string()))
-        } else {
-            Ok(format!(
-                "Could not find a call with id of {}",
-                call_id.to_string()
-            ))
-        }
-    }
 }

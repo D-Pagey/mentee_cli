@@ -1,5 +1,7 @@
 mod cli;
+mod config;
 mod constants;
+mod db;
 mod error;
 mod mentee;
 pub mod mentorship_service;
@@ -13,6 +15,8 @@ use cli::{
     display_mentee, render_calls_table, render_mentees_table, render_payments_table,
     render_videos_table,
 };
+use config::Config;
+use db::connection;
 use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
@@ -148,6 +152,10 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 }
 
 pub fn run() -> Result<(), MenteeError> {
+    let config = Config::new()?;
+    let conn = connection::establish_connection(&config)?;
+
+    let call_service = CallService::new(&conn);
     let mentorship_service = MentorshipService::new()?;
 
     let cli = Cli::parse();
@@ -230,10 +238,10 @@ pub fn run() -> Result<(), MenteeError> {
                 }
             }
             CallActions::Delete { call_id } => {
-                match mentorship_service.call_service.delete_call(call_id) {
+                match call_service.delete_call(call_id) {
                     Ok(deleted) => println!("{deleted}"),
                     Err(err) => eprintln!("{err}"),
-                }
+                };
             }
         },
         Commands::Videos { action } => match action {
