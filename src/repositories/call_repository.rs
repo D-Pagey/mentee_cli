@@ -11,7 +11,6 @@ impl<'a> CallRepository<'a> {
     }
 
     /// Delete a call by call id
-    /// TODO: add return type
     pub fn delete_call(&self, call_id: u32) -> Result<usize, rusqlite::Error> {
         let sql = format!("DELETE FROM {} WHERE id = :call_id", constants::CALLS_TABLE);
 

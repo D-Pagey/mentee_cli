@@ -17,6 +17,7 @@ use cli::{
 };
 use config::Config;
 use db::connection;
+use db::migrations;
 use error::MenteeError;
 use mentee::Status;
 use mentorship_service::MentorshipService;
@@ -153,7 +154,10 @@ fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Deb
 
 pub fn run() -> Result<(), MenteeError> {
     let config = Config::new()?;
-    let conn = connection::establish_connection(&config)?;
+    let conn =
+        connection::establish_connection(&config).expect("Failed to connect to the database");
+
+    migrations::run_migrations(&conn).expect("Failed to run database migrations");
 
     let call_service = CallService::new(&conn);
     let mentorship_service = MentorshipService::new()?;
