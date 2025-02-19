@@ -1,4 +1,4 @@
-use crate::constants;
+use crate::{constants, models::call::CallWithMenteeName};
 use rusqlite::Connection;
 
 pub struct CallRepository<'a> {

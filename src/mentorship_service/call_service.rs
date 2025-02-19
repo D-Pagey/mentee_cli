@@ -28,19 +28,6 @@ pub struct CallService {
 impl CallService {
     // TODO: change error to a CallError
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
-        let calls_sql = format!(
-            "CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mentee_id INTEGER NOT NULL,
-            date TEXT NOT NULL,
-            notes TEXT,
-            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
-            constants::CALLS_TABLE,
-            constants::MENTEES_TABLE
-        );
-
-        conn.borrow().execute(&calls_sql, ())?;
-
         Ok(Self { conn })
     }
 

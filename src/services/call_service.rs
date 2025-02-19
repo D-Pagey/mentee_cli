@@ -1,15 +1,17 @@
 use rusqlite::Connection;
 
-use crate::repositories::CallRepository;
+use crate::repositories::{mentee_repository::MenteeRepository, CallRepository};
 
 pub struct CallService<'a> {
     call_repo: CallRepository<'a>,
+    mentee_repo: MenteeRepository<'a>,
 }
 
 impl<'a> CallService<'a> {
     pub fn new(conn: &'a Connection) -> Self {
         Self {
             call_repo: CallRepository::new(conn),
+            mentee_repo: MenteeRepository::new(conn),
         }
     }
 
