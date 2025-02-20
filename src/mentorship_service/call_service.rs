@@ -31,64 +31,6 @@ impl CallService {
         Ok(Self { conn })
     }
 
-    pub fn get_all_calls(
-        &self,
-        name: Option<String>,
-    ) -> Result<Vec<CallWithMenteeName>, MenteeError> {
-        let mut sql = format!(
-            "
-            SELECT 
-                calls.id AS call_id,
-                mentees.name AS mentee_name,
-                calls.date,
-                calls.notes
-            FROM 
-                {}
-            JOIN 
-                {}
-            ON
-                calls.mentee_id = mentees.id
-            ",
-            constants::CALLS_TABLE,
-            constants::MENTEES_TABLE
-        );
-
-        if let Some(name) = name {
-            let mentee_id = match self.get_mentee_id(&name)? {
-                Some(id) => id,
-                None => {
-                    // TODO: change this to error not OK
-                    println!("No mentee found with the name '{}'.", name);
-                    return Ok(vec![]); // Return early with an empty vector
-                }
-            };
-
-            sql.push_str(format!("WHERE calls.mentee_id = {} ", &mentee_id).as_str());
-        }
-
-        sql.push_str("ORDER BY calls.date DESC");
-
-        let binding = self.conn.borrow();
-        let mut stmt = binding.prepare(&sql)?;
-
-        let call_iter = stmt.query_map([], |row| {
-            Ok(CallWithMenteeName {
-                call_id: row.get(0)?,
-                mentee_name: row.get(1)?,
-                date: row.get(2)?,
-                notes: row.get(3)?,
-            })
-        })?;
-
-        let mut calls: Vec<CallWithMenteeName> = Vec::new();
-
-        for call_result in call_iter {
-            calls.push(call_result?)
-        }
-
-        Ok(calls)
-    }
-
     fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
         let sql = format!(
             "SELECT id FROM {} WHERE name = ? LIMIT 1",

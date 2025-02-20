@@ -222,15 +222,10 @@ pub fn run() -> Result<(), MenteeError> {
             }
         }
         Commands::Calls { action } => match action {
-            CallActions::List { name } => {
-                if let Err(err) = mentorship_service
-                    .call_service
-                    .get_all_calls(name)
-                    .and_then(render_calls_table)
-                {
-                    eprintln!("{err}");
-                }
-            }
+            CallActions::List { name } => match call_service.get_all_calls(name) {
+                Ok(calls) => render_calls_table(calls)?,
+                Err(err) => eprintln!("{}", err),
+            },
             CallActions::Add { name } => match mentorship_service.call_service.add_call(name) {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),

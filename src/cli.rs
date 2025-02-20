@@ -6,9 +6,9 @@ use crate::{
     error::MenteeError,
     mentee::Status,
     mentorship_service::{
-        call_service::CallWithMenteeName, mentee_service::Mentee, payment_service::Payment,
-        video_service::VideoWithMenteeName,
+        mentee_service::Mentee, payment_service::Payment, video_service::VideoWithMenteeName,
     },
+    models::call::CallWithMenteeName,
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
@@ -110,7 +110,7 @@ pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
                 call.call_id.to_string(),
                 capitalize_first_letter_of_each_word(&call.mentee_name),
                 formatted_date,
-                call.notes,
+                call.notes.unwrap_or("".to_string()),
             ]
         })
         .collect();
