@@ -1,8 +1,9 @@
+use inquire::{DateSelect, Text};
 use rusqlite::Connection;
 
 use crate::{
     error::MenteeError,
-    models::call::CallWithMenteeName,
+    models::call::{Call, CallWithMenteeName},
     repositories::{mentee_repository::MenteeRepository, CallRepository},
 };
 
@@ -16,6 +17,37 @@ impl<'a> CallService<'a> {
         Self {
             call_repo: CallRepository::new(conn),
             mentee_repo: MenteeRepository::new(conn),
+        }
+    }
+
+    pub fn add_call(&self, name: String) -> Result<String, MenteeError> {
+        let mentee_id = self.mentee_repo.get_mentee_id(&name)?.ok_or_else(|| {
+            MenteeError::NotFound(format!("No mentee found with name '{}'", name))
+        })?;
+
+        let date = DateSelect::new("Enter the date of the call:")
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let notes = Text::new("Enter any notes for the call:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .prompt()
+            .expect("Failed to read notes");
+
+        let call = Call {
+            mentee_id,
+            call_id: 0,
+            date: date.clone(),
+            notes: Some(notes),
+        };
+
+        let result = self.call_repo.add_call(call);
+
+        match result {
+            Ok(..) => Ok(format!("Call with {name} on {date} added.")),
+            Err(err) => Err(MenteeError::DatabaseError(err)),
         }
     }
 

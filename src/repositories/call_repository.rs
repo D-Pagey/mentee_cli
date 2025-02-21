@@ -1,5 +1,8 @@
-use crate::{constants, models::call::CallWithMenteeName};
-use rusqlite::Connection;
+use crate::{
+    constants,
+    models::call::{Call, CallWithMenteeName},
+};
+use rusqlite::{params, Connection};
 
 pub struct CallRepository<'a> {
     conn: &'a Connection,
@@ -8,6 +11,16 @@ pub struct CallRepository<'a> {
 impl<'a> CallRepository<'a> {
     pub fn new(conn: &'a Connection) -> Self {
         Self { conn }
+    }
+
+    pub fn add_call(&self, call: Call) -> Result<usize, rusqlite::Error> {
+        let sql = &format!(
+            "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
+            constants::CALLS_TABLE
+        );
+
+        self.conn
+            .execute(&sql, params![call.mentee_id, call.date, call.notes])
     }
 
     pub fn get_all_calls(
@@ -60,6 +73,7 @@ impl<'a> CallRepository<'a> {
 
         Ok(calls)
     }
+
     /// Delete a call by call id
     pub fn delete_call(&self, call_id: u32) -> Result<usize, rusqlite::Error> {
         let sql = format!("DELETE FROM {} WHERE id = :call_id", constants::CALLS_TABLE);

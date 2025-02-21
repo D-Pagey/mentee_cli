@@ -1,25 +1,10 @@
+use crate::models::call::Call;
 use crate::{constants, error::MenteeError};
 use chrono::NaiveDate;
 use inquire::{DateSelect, Text};
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection};
 use std::cell::RefCell;
 use std::rc::Rc;
-
-#[derive(Debug)]
-pub struct Call {
-    pub id: u32,
-    pub mentee_id: u32,
-    pub date: String,
-    pub notes: String,
-}
-
-#[derive(Debug)]
-pub struct CallWithMenteeName {
-    pub call_id: u32,
-    pub mentee_name: String,
-    pub date: String,
-    pub notes: String,
-}
 
 pub struct CallService {
     conn: Rc<RefCell<Connection>>,
@@ -29,49 +14,6 @@ impl CallService {
     // TODO: change error to a CallError
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
         Ok(Self { conn })
-    }
-
-    fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
-        let sql = format!(
-            "SELECT id FROM {} WHERE name = ? LIMIT 1",
-            constants::MENTEES_TABLE,
-        );
-
-        self.conn
-            .borrow()
-            .query_row(&sql, &[name], |row| row.get(0))
-            .optional()
-    }
-
-    pub fn add_call(&self, name: String) -> Result<String, MenteeError> {
-        let mentee_id = match self.get_mentee_id(&name)? {
-            Some(id) => id,
-            None => return Ok(format!("No mentee found with the name '{}'.", name)),
-        };
-
-        let date = DateSelect::new("Enter the date of the call:")
-            .prompt()
-            .expect("Failed to read date")
-            .format("%Y-%m-%d")
-            .to_string();
-
-        let notes = Text::new("Enter any notes for the call:")
-            .with_placeholder("e.g. Discussed project progress ")
-            .prompt()
-            .expect("Failed to read notes");
-
-        let result = self.conn.borrow().execute(
-            &format!(
-                "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
-                constants::CALLS_TABLE
-            ),
-            (&mentee_id, &date, &notes),
-        );
-
-        match result {
-            Ok(_) => Ok(format!("Call with {name} on {date} added.")),
-            Err(err) => Err(MenteeError::from(err)),
-        }
     }
 
     fn parse_date_from_db(date_str: &str) -> Result<NaiveDate, chrono::format::ParseError> {
@@ -86,7 +28,7 @@ impl CallService {
             .borrow()
             .query_row(&get_sql, params![call_id], |row| {
                 Ok(Call {
-                    id: row.get(0)?,
+                    call_id: row.get(0)?,
                     mentee_id: row.get(1)?,
                     date: row.get(2)?,
                     notes: row.get(3)?,
@@ -110,7 +52,7 @@ impl CallService {
 
         let notes = Text::new("Enter any notes for the call:")
             .with_placeholder("e.g. Discussed project progress ")
-            .with_initial_value(&call.notes)
+            .with_initial_value(call.notes.as_deref().unwrap_or(""))
             .prompt()
             .expect("Failed to read notes");
 

@@ -226,7 +226,7 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(calls) => render_calls_table(calls)?,
                 Err(err) => eprintln!("{}", err),
             },
-            CallActions::Add { name } => match mentorship_service.call_service.add_call(name) {
+            CallActions::Add { name } => match call_service.add_call(name) {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
