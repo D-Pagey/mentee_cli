@@ -5,6 +5,7 @@ use crate::{
     error::MenteeError,
     models::call::{Call, CallWithMenteeName},
     repositories::{mentee_repository::MenteeRepository, CallRepository},
+    utils::parse_date_from_db,
 };
 
 pub struct CallService<'a> {
@@ -37,8 +38,8 @@ impl<'a> CallService<'a> {
             .expect("Failed to read notes");
 
         let call = Call {
+            id: 0,
             mentee_id,
-            call_id: 0,
             date: date.clone(),
             notes: Some(notes),
         };
@@ -72,6 +73,31 @@ impl<'a> CallService<'a> {
         self.call_repo
             .get_all_calls(mentee_id)
             .map_err(MenteeError::DatabaseError)
+    }
+
+    pub fn update_call(&self, call_id: u32) -> Result<String, MenteeError> {
+        let call = self.call_repo.get_call_by_id(call_id).map_err(|_| {
+            MenteeError::NotFound(format!("Can't find a call with id of {}", call_id))
+        })?;
+
+        let parsed_date = parse_date_from_db(&call.date).unwrap();
+
+        let date = DateSelect::new("Enter the date of the call:")
+            .with_default(parsed_date)
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let notes = Text::new("Enter any notes for the call:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .with_initial_value(call.notes.as_deref().unwrap_or(""))
+            .prompt()
+            .expect("Failed to read notes");
+
+        let updated_rows = self.call_repo.update_call(call.id, date, notes)?;
+
+        Ok(format!("{updated_rows} call record updated"))
     }
 
     pub fn delete_call(&self, call_id: u32) -> Result<String, String> {

@@ -107,7 +107,7 @@ pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
             let formatted_date = format_date(&call.date).unwrap_or_else(|_| call.date.clone());
 
             vec![
-                call.call_id.to_string(),
+                call.id.to_string(),
                 capitalize_first_letter_of_each_word(&call.mentee_name),
                 formatted_date,
                 call.notes.unwrap_or("".to_string()),

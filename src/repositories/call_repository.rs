@@ -23,6 +23,36 @@ impl<'a> CallRepository<'a> {
             .execute(&sql, params![call.mentee_id, call.date, call.notes])
     }
 
+    pub fn get_call_by_id(&self, id: u32) -> Result<Call, rusqlite::Error> {
+        let sql = format!(
+            "SELECT id, mentee_id, date, notes FROM {} WHERE id = ?1",
+            constants::CALLS_TABLE
+        );
+
+        self.conn.query_row(&sql, params![id], |row| {
+            Ok(Call {
+                id: row.get(0)?,
+                mentee_id: row.get(1)?,
+                date: row.get(2)?,
+                notes: row.get(3)?,
+            })
+        })
+    }
+
+    pub fn update_call(
+        &self,
+        id: u32,
+        date: String,
+        notes: String,
+    ) -> Result<usize, rusqlite::Error> {
+        let sql = format!(
+            "UPDATE {} SET date = ?1, notes = ?2 WHERE id = ?3",
+            constants::CALLS_TABLE
+        );
+
+        self.conn.execute(&sql, params![date, notes, id])
+    }
+
     pub fn get_all_calls(
         &self,
         mentee_id: Option<i64>,
@@ -59,7 +89,7 @@ impl<'a> CallRepository<'a> {
         let mut stmt = self.conn.prepare(&sql)?;
         let call_iter = stmt.query_map(&params[..], |row| {
             Ok(CallWithMenteeName {
-                call_id: row.get(0)?,
+                id: row.get(0)?,
                 mentee_name: row.get(1)?,
                 date: row.get(2)?,
                 notes: row.get(3)?,

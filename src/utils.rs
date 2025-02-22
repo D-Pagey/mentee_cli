@@ -1,6 +1,12 @@
 use inquire::validator::Validation;
 use std::error::Error;
 
+use chrono::{NaiveDate, ParseError};
+
+pub fn parse_date_from_db(date_str: &str) -> Result<NaiveDate, ParseError> {
+    NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+}
+
 pub fn validate_name_core(s: &str) -> Result<(), String> {
     if s.trim().is_empty() {
         Err("Name cannot be empty or just whitespace.".to_string())

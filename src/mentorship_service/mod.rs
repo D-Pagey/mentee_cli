@@ -3,7 +3,6 @@ pub mod mentee_service;
 pub mod payment_service;
 pub mod video_service;
 
-use call_service::CallService;
 use dirs::home_dir;
 use mentee_service::MenteeService;
 use payment_service::PaymentService;
@@ -16,7 +15,6 @@ use crate::error::MenteeError;
 
 pub struct MentorshipService {
     pub mentee_service: MenteeService,
-    pub call_service: CallService,
     pub payment_service: PaymentService,
     pub video_service: VideoService,
 }
@@ -40,13 +38,11 @@ impl MentorshipService {
         let conn = Rc::new(RefCell::new(Connection::open(db_path)?));
 
         let mentee_service = MenteeService::new(conn.clone())?;
-        let call_service = CallService::new(conn.clone())?;
         let payment_service = PaymentService::new(conn.clone())?;
         let video_service = VideoService::new(conn.clone())?;
 
         Ok(Self {
             mentee_service,
-            call_service,
             payment_service,
             video_service,
         })
