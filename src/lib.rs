@@ -244,15 +244,10 @@ pub fn run() -> Result<(), MenteeError> {
             }
         },
         Commands::Videos { action } => match action {
-            VideoActions::List { name } => {
-                if let Err(err) = mentorship_service
-                    .video_service
-                    .get_all_videos(name)
-                    .and_then(render_videos_table)
-                {
-                    eprintln!("{err}");
-                }
-            }
+            VideoActions::List { name } => match video_service.get_all_videos(name) {
+                Ok(videos) => render_videos_table(videos)?,
+                Err(err) => eprintln!("{}", err),
+            },
             VideoActions::Add { name } => match mentorship_service.video_service.add_video(name) {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),

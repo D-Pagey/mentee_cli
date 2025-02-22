@@ -5,10 +5,8 @@ use colored::Colorize;
 use crate::{
     error::MenteeError,
     mentee::Status,
-    mentorship_service::{
-        mentee_service::Mentee, payment_service::Payment, video_service::VideoWithMenteeName,
-    },
-    models::call::CallWithMenteeName,
+    mentorship_service::{mentee_service::Mentee, payment_service::Payment},
+    models::{call::CallWithMenteeName, video::VideoWithMenteeName},
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
