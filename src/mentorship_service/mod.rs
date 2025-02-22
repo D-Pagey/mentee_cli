@@ -1,4 +1,3 @@
-pub mod call_service;
 pub mod mentee_service;
 pub mod payment_service;
 pub mod video_service;
