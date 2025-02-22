@@ -1,5 +1,5 @@
-#[derive(Debug, Clone)]
 pub struct Video {
+    #[allow(dead_code)]
     pub id: i64,
     pub mentee_id: i64,
     pub date: String,

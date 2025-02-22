@@ -23,6 +23,7 @@ use mentee::Status;
 use mentorship_service::MentorshipService;
 use rusqlite::Result;
 use services::CallService;
+use services::PaymentService;
 use services::VideoService;
 use utils::{clap_validate_day, clap_validate_name};
 
@@ -161,6 +162,7 @@ pub fn run() -> Result<(), MenteeError> {
     migrations::run_migrations(&conn).expect("Failed to run database migrations");
 
     let call_service = CallService::new(&conn);
+    let payment_service = PaymentService::new(&conn);
     let video_service = VideoService::new(&conn);
     let mentorship_service = MentorshipService::new()?;
 

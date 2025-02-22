@@ -30,5 +30,18 @@ pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
 
     conn.execute(&videos_sql, [])?;
 
+    let payments_sql = format!(
+        "CREATE TABLE IF NOT EXISTS {} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mentee_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
+        constants::PAYMENTS_TABLE,
+        constants::MENTEES_TABLE
+    );
+
+    conn.execute(&payments_sql, [])?;
+
     Ok(())
 }
