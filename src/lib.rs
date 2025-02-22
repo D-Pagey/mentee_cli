@@ -23,6 +23,7 @@ use mentee::Status;
 use mentorship_service::MentorshipService;
 use rusqlite::Result;
 use services::CallService;
+use services::VideoService;
 use utils::{clap_validate_day, clap_validate_name};
 
 /// CLI to manage state of mentees
@@ -160,6 +161,7 @@ pub fn run() -> Result<(), MenteeError> {
     migrations::run_migrations(&conn).expect("Failed to run database migrations");
 
     let call_service = CallService::new(&conn);
+    let video_service = VideoService::new(&conn);
     let mentorship_service = MentorshipService::new()?;
 
     let cli = Cli::parse();
@@ -261,12 +263,10 @@ pub fn run() -> Result<(), MenteeError> {
                     Err(err) => eprintln!("{err}"),
                 }
             }
-            VideoActions::Delete { video_id } => {
-                match mentorship_service.video_service.delete_video(video_id) {
-                    Ok(deleted) => println!("{deleted}"),
-                    Err(err) => eprintln!("{err}"),
-                }
-            }
+            VideoActions::Delete { video_id } => match video_service.delete_video(video_id) {
+                Ok(deleted) => println!("{deleted}"),
+                Err(err) => eprintln!("{err}"),
+            },
         },
         Commands::Payments { action } => match action {
             PaymentActions::List { name } => {

@@ -27,20 +27,6 @@ pub struct VideoService {
 
 impl VideoService {
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
-        let sql = format!(
-            "CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mentee_id INTEGER NOT NULL,
-            date TEST NOT NULL,
-            length INTEGER NOT NULL,
-            notes TEXT,
-            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
-            constants::VIDEOS_TABLE,
-            constants::MENTEES_TABLE
-        );
-
-        conn.borrow().execute(&sql, ())?;
-
         Ok(Self { conn })
     }
 
@@ -206,23 +192,5 @@ impl VideoService {
             .execute(&update_sql, params![date, length, notes, video_id])?;
 
         Ok(format!("{result} video record updated"))
-    }
-
-    pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {
-        let sql = format!("DELETE FROM {} WHERE id = ?1", constants::VIDEOS_TABLE);
-
-        let deleted = self.conn.borrow().execute(&sql, [&video_id])?;
-
-        if deleted > 0 {
-            Ok(format!(
-                "Deleted video log with id of {}",
-                video_id.to_string()
-            ))
-        } else {
-            Ok(format!(
-                "Could not find video log with id of {}",
-                video_id.to_string()
-            ))
-        }
     }
 }
