@@ -26,6 +26,20 @@ impl<'a> VideoRepository<'a> {
         )
     }
 
+    pub fn get_video_by_id(&self, video_id: u32) -> Result<Video, rusqlite::Error> {
+        let sql = format!("SELECT * FROM {} WHERE id = ?1", constants::VIDEOS_TABLE);
+
+        self.conn.query_row(&sql, params![video_id], |row| {
+            Ok(Video {
+                id: row.get(0)?,
+                mentee_id: row.get(1)?,
+                date: row.get(2)?,
+                length: row.get(3)?,
+                notes: row.get(4)?,
+            })
+        })
+    }
+
     pub fn get_all_videos(
         &self,
         mentee_id: Option<i64>,
@@ -76,6 +90,21 @@ impl<'a> VideoRepository<'a> {
         }
 
         Ok(videos)
+    }
+
+    pub fn update_video(
+        &self,
+        date: String,
+        length: u32,
+        notes: String,
+        id: u32,
+    ) -> Result<usize, rusqlite::Error> {
+        let sql = format!(
+            "UPDATE {} SET date = ?1, length = ?2, notes = ?3 WHERE id = ?4",
+            constants::VIDEOS_TABLE
+        );
+
+        self.conn.execute(&sql, params![date, length, notes, id])
     }
 
     // Delete a video by video id

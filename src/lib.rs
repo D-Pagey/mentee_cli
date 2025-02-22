@@ -252,12 +252,10 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
-            VideoActions::Update { video_id } => {
-                match mentorship_service.video_service.update_video(video_id) {
-                    Ok(success) => println!("{success}"),
-                    Err(err) => eprintln!("{err}"),
-                }
-            }
+            VideoActions::Update { video_id } => match video_service.update_video(video_id) {
+                Ok(success) => println!("{success}"),
+                Err(err) => eprintln!("{err}"),
+            },
             VideoActions::Delete { video_id } => match video_service.delete_video(video_id) {
                 Ok(deleted) => println!("{deleted}"),
                 Err(err) => eprintln!("{err}"),

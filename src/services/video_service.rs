@@ -1,10 +1,11 @@
-use inquire::{DateSelect, Text};
+use inquire::{CustomType, DateSelect, Text};
 use rusqlite::Connection;
 
 use crate::{
     error::MenteeError,
     models::video::{Video, VideoWithMenteeName},
     repositories::{MenteeRepository, VideoRepository},
+    utils::parse_date_from_db,
 };
 
 pub struct VideoService<'a> {
@@ -74,6 +75,39 @@ impl<'a> VideoService<'a> {
         self.video_repo
             .get_all_videos(mentee_id)
             .map_err(MenteeError::DatabaseError)
+    }
+
+    pub fn update_video(&self, video_id: u32) -> Result<String, MenteeError> {
+        let video = self
+            .video_repo
+            .get_video_by_id(video_id)
+            .map_err(|_| MenteeError::NotFound(format!("Video with id of {}", video_id)))?;
+
+        let parsed_date = parse_date_from_db(&video.date).unwrap();
+
+        let date = DateSelect::new("Enter the date of the video:")
+            .with_default(parsed_date)
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let length: u32 = CustomType::new("Roughly how long was the video?")
+            .with_starting_input(&video.length.to_string())
+            .prompt()
+            .expect("Failed to read length");
+
+        let notes = Text::new("Enter any notes for the video:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .with_initial_value(&video.notes)
+            .prompt()
+            .expect("Failed to read notes");
+
+        let updated = self
+            .video_repo
+            .update_video(date, length, notes, video_id)?;
+
+        Ok(format!("{updated} video record updated"))
     }
 
     pub fn delete_video(&self, video_id: u32) -> Result<String, MenteeError> {
