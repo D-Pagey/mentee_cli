@@ -14,7 +14,7 @@ impl<'a> CallRepository<'a> {
     }
 
     pub fn add_call(&self, call: Call) -> Result<usize, rusqlite::Error> {
-        let sql = &format!(
+        let sql = format!(
             "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
             constants::CALLS_TABLE
         );

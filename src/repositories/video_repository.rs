@@ -1,6 +1,9 @@
 use rusqlite::{params, Connection};
 
-use crate::{constants, models::video::VideoWithMenteeName};
+use crate::{
+    constants,
+    models::video::{Video, VideoWithMenteeName},
+};
 
 pub struct VideoRepository<'a> {
     conn: &'a Connection,
@@ -9,6 +12,18 @@ pub struct VideoRepository<'a> {
 impl<'a> VideoRepository<'a> {
     pub fn new(conn: &'a Connection) -> Self {
         Self { conn }
+    }
+
+    pub fn add_video(&self, video: Video) -> Result<usize, rusqlite::Error> {
+        let sql = format!(
+            "INSERT INTO {} (mentee_id, date, length, notes) VALUES (?1, ?2, ?3, ?4)",
+            constants::VIDEOS_TABLE
+        );
+
+        self.conn.execute(
+            &sql,
+            params![video.mentee_id, video.date, video.length, video.notes],
+        )
     }
 
     pub fn get_all_videos(

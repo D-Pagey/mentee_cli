@@ -1,8 +1,9 @@
+use inquire::{DateSelect, Text};
 use rusqlite::Connection;
 
 use crate::{
     error::MenteeError,
-    models::video::VideoWithMenteeName,
+    models::video::{Video, VideoWithMenteeName},
     repositories::{MenteeRepository, VideoRepository},
 };
 
@@ -16,6 +17,39 @@ impl<'a> VideoService<'a> {
         Self {
             mentee_repo: MenteeRepository::new(conn),
             video_repo: VideoRepository::new(conn),
+        }
+    }
+
+    pub fn add_video(&self, name: String) -> Result<String, MenteeError> {
+        let mentee_id = self
+            .mentee_repo
+            .get_mentee_id(&name)?
+            .ok_or_else(|| MenteeError::NotFound(format!("No mentee with name '{}'", name)))?;
+
+        let date = DateSelect::new("Enter the date of the video:")
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let length = inquire::prompt_u32("Roughly how long was the video?")?;
+
+        let notes = Text::new("Enter any notes for the video:")
+            .with_placeholder("e.g. Discussed project progress ")
+            .prompt()
+            .expect("Failed to read notes");
+
+        let result = self.video_repo.add_video(Video {
+            id: 0,
+            mentee_id,
+            date: date.clone(),
+            length,
+            notes,
+        });
+
+        match result {
+            Ok(_) => Ok(format!("Video log with {name} on {date} added.")),
+            Err(err) => Err(MenteeError::from(err)),
         }
     }
 

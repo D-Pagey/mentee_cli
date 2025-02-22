@@ -37,14 +37,12 @@ impl<'a> CallService<'a> {
             .prompt()
             .expect("Failed to read notes");
 
-        let call = Call {
+        let result = self.call_repo.add_call(Call {
             id: 0,
             mentee_id,
             date: date.clone(),
             notes: Some(notes),
-        };
-
-        let result = self.call_repo.add_call(call);
+        });
 
         match result {
             Ok(..) => Ok(format!("Call with {name} on {date} added.")),

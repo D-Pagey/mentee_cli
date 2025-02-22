@@ -248,7 +248,7 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(videos) => render_videos_table(videos)?,
                 Err(err) => eprintln!("{}", err),
             },
-            VideoActions::Add { name } => match mentorship_service.video_service.add_video(name) {
+            VideoActions::Add { name } => match video_service.add_video(name) {
                 Ok(success) => println!("{success}"),
                 Err(err) => eprintln!("{err}"),
             },
