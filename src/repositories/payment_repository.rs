@@ -14,6 +14,20 @@ impl<'a> PaymentRepository<'a> {
         Self { conn }
     }
 
+    pub fn add_payment(
+        &self,
+        mentee_id: u32,
+        date: String,
+        amount: u32,
+    ) -> Result<usize, rusqlite::Error> {
+        let sql = format!(
+            "INSERT INTO {} (mentee_id, date, amount) VALUES (?1, ?2, ?3)",
+            constants::PAYMENTS_TABLE
+        );
+
+        self.conn.execute(&sql, params![mentee_id, date, amount])
+    }
+
     pub fn get_payment_by_id(&self, id: u32) -> Result<Payment, rusqlite::Error> {
         let sql = format!("SELECT * FROM {} WHERE id = ?1", constants::PAYMENTS_TABLE);
 
