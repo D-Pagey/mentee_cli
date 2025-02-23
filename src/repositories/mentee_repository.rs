@@ -1,6 +1,6 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
-use crate::constants;
+use crate::{constants, models::mentee::Mentee};
 
 pub struct MenteeRepository<'a> {
     conn: &'a Connection,
@@ -23,7 +23,25 @@ impl<'a> MenteeRepository<'a> {
             .optional()
     }
 
-    // TODO: cascade deletes
+    pub fn add_mentee(self, mentee: Mentee) -> Result<String, rusqlite::Error> {
+        let sql = format!(
+            "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", 
+            constants::MENTEES_TABLE);
+
+        self.conn.execute(
+            &sql,
+            params![
+                mentee.name,
+                mentee.calls,
+                mentee.gross,
+                mentee.net,
+                mentee.status,
+                mentee.payment_day,
+                mentee.notes
+            ],
+        )
+    }
+
     pub fn delete_mentee_by_id(&self, id: i64) -> Result<usize, rusqlite::Error> {
         let sql = format!("DELETE FROM {} WHERE id = ?1", constants::MENTEES_TABLE);
 
