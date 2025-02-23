@@ -268,12 +268,10 @@ pub fn run() -> Result<(), MenteeError> {
                 Ok(payments) => render_payments_table(payments)?,
                 Err(err) => eprintln!("{}", err),
             },
-            PaymentActions::Add { name } => {
-                match mentorship_service.payment_service.add_payment(name) {
-                    Ok(success) => println!("{success}"),
-                    Err(err) => eprintln!("{err}"),
-                }
-            }
+            PaymentActions::Add { name } => match payment_service.add_payment(name) {
+                Ok(success) => println!("{success}"),
+                Err(err) => eprintln!("{err}"),
+            },
             PaymentActions::Update { payment_id } => {
                 match payment_service.update_payment(payment_id) {
                     Ok(success) => println!("{success}"),

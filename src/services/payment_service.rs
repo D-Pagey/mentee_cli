@@ -44,6 +44,29 @@ impl<'a> PaymentService<'a> {
             .map_err(MenteeError::DatabaseError)
     }
 
+    pub fn add_payment(&self, name: String) -> Result<String, MenteeError> {
+        let mentee_id = self
+            .mentee_repo
+            .get_mentee_id(&name)?
+            .ok_or_else(|| MenteeError::NotFound(format!("Mentee with name {}", name)))?;
+
+        let date = DateSelect::new("Enter the date of the payment:")
+            .prompt()
+            .expect("Failed to read date")
+            .format("%Y-%m-%d")
+            .to_string();
+
+        let amount: u32 = CustomType::new("Enter the payment amount:")
+            .with_placeholder("e.g., 100")
+            .prompt()
+            .expect("Failed to read amount");
+
+        match self.payment_repo.add_payment(mentee_id, date, amount) {
+            Ok(..) => Ok(format!("Payment of {amount} added for {name}")),
+            Err(err) => Err(MenteeError::DatabaseError(err)),
+        }
+    }
+
     pub fn update_payment(&self, payment_id: u32) -> Result<String, MenteeError> {
         let payment = self
             .payment_repo
