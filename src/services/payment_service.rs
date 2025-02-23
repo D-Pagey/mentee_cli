@@ -1,17 +1,47 @@
 use inquire::{CustomType, DateSelect};
 use rusqlite::Connection;
 
-use crate::{error::MenteeError, repositories::PaymentRepository, utils::parse_date_from_db};
+use crate::{
+    error::MenteeError,
+    models::payment::PaymentWithMenteeName,
+    repositories::{MenteeRepository, PaymentRepository},
+    utils::parse_date_from_db,
+};
 
 pub struct PaymentService<'a> {
     payment_repo: PaymentRepository<'a>,
+    mentee_repo: MenteeRepository<'a>,
 }
 
 impl<'a> PaymentService<'a> {
     pub fn new(conn: &'a Connection) -> Self {
         Self {
             payment_repo: PaymentRepository::new(conn),
+            mentee_repo: MenteeRepository::new(conn),
         }
+    }
+
+    pub fn get_all_payments(
+        &self,
+        name: Option<String>,
+    ) -> Result<Vec<PaymentWithMenteeName>, MenteeError> {
+        let mentee_id = if let Some(name) = name {
+            match self.mentee_repo.get_mentee_id(&name)? {
+                Some(id) => Some(id),
+                None => {
+                    return Err(MenteeError::NotFound(format!(
+                        "No mentee found with name '{}'",
+                        name
+                    )))
+                }
+            }
+        } else {
+            None
+        };
+
+        self.payment_repo
+            .get_all_payments(mentee_id)
+            .map_err(MenteeError::DatabaseError)
     }
 
     pub fn update_payment(&self, payment_id: u32) -> Result<String, MenteeError> {

@@ -5,8 +5,10 @@ use colored::Colorize;
 use crate::{
     error::MenteeError,
     mentee::Status,
-    mentorship_service::{mentee_service::Mentee, payment_service::Payment},
-    models::{call::CallWithMenteeName, video::VideoWithMenteeName},
+    mentorship_service::mentee_service::Mentee,
+    models::{
+        call::CallWithMenteeName, payment::PaymentWithMenteeName, video::VideoWithMenteeName,
+    },
 };
 
 fn calc_net_per_call(net: &u32, calls: &u32) -> u32 {
@@ -116,20 +118,16 @@ pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
     rows
 }
 
-pub fn format_payments(payments: Vec<Payment>) -> Vec<Vec<String>> {
+pub fn format_payments(payments: Vec<PaymentWithMenteeName>) -> Vec<Vec<String>> {
     let rows: Vec<Vec<String>> = payments
         .into_iter()
         .map(|payment| {
             let formatted_date =
                 format_date(&payment.date).unwrap_or_else(|_| payment.date.clone());
 
-            let mentee = payment
-                .mentee_name
-                .unwrap_or_else(|| payment.mentee_id.to_string());
-
             vec![
                 payment.id.to_string(),
-                capitalize_first_letter_of_each_word(&mentee),
+                capitalize_first_letter_of_each_word(&payment.mentee_name),
                 formatted_date,
                 payment.amount.to_string(),
             ]
@@ -225,7 +223,7 @@ pub fn render_videos_table(videos: Vec<VideoWithMenteeName>) -> Result<(), Mente
     Ok(println!("{}", table_display))
 }
 
-pub fn render_payments_table(payments: Vec<Payment>) -> Result<(), MenteeError> {
+pub fn render_payments_table(payments: Vec<PaymentWithMenteeName>) -> Result<(), MenteeError> {
     let rows = format_payments(payments);
 
     let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows

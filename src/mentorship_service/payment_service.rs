@@ -24,62 +24,6 @@ impl PaymentService {
         Ok(Self { conn })
     }
 
-    pub fn get_payments(self, name: Option<String>) -> Result<Vec<Payment>, MenteeError> {
-        let mut sql = format!(
-            "SELECT 
-                payments.id AS payment_id,
-                mentees.name AS mentee_name,
-                payments.mentee_id,
-                payments.date,
-                payments.amount
-            FROM 
-                {}
-            JOIN
-                {}
-            ON
-                payments.mentee_id = mentees.id            
-            ",
-            constants::PAYMENTS_TABLE,
-            constants::MENTEES_TABLE
-        );
-
-        if let Some(name) = name {
-            let mentee_id = match self.get_mentee_id(&name)? {
-                Some(id) => id,
-                None => {
-                    // TODO: change this to error not OK // or should it be error?
-                    println!("No mentee found with the name '{}'.", name);
-                    return Ok(vec![]); // Return early with an empty vector
-                }
-            };
-
-            sql.push_str(format!("WHERE payments.mentee_id = {} ", &mentee_id).as_str());
-        }
-
-        sql.push_str("ORDER BY payments.date DESC");
-
-        let binding = self.conn.borrow();
-        let mut stmt = binding.prepare(&sql)?;
-
-        let payment_iter = stmt.query_map([], |row| {
-            Ok(Payment {
-                id: row.get(0)?,
-                mentee_name: row.get(1)?,
-                mentee_id: row.get(2)?,
-                date: row.get(3)?,
-                amount: row.get(4)?,
-            })
-        })?;
-
-        let mut payments: Vec<Payment> = Vec::new();
-
-        for payment_result in payment_iter {
-            payments.push(payment_result?)
-        }
-
-        Ok(payments)
-    }
-
     fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
         let sql = format!(
             "SELECT id FROM {} WHERE name = ? LIMIT 1",

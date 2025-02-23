@@ -264,15 +264,10 @@ pub fn run() -> Result<(), MenteeError> {
             },
         },
         Commands::Payments { action } => match action {
-            PaymentActions::List { name } => {
-                if let Err(err) = mentorship_service
-                    .payment_service
-                    .get_payments(name)
-                    .and_then(render_payments_table)
-                {
-                    eprintln!("{err}");
-                }
-            }
+            PaymentActions::List { name } => match payment_service.get_all_payments(name) {
+                Ok(payments) => render_payments_table(payments)?,
+                Err(err) => eprintln!("{}", err),
+            },
             PaymentActions::Add { name } => {
                 match mentorship_service.payment_service.add_payment(name) {
                     Ok(success) => println!("{success}"),
