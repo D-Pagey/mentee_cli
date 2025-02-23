@@ -2,11 +2,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::usize;
 
+use crate::models::mentee::Status;
 use crate::utils::{inquire_validate_day, inquire_validate_name};
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
-use crate::mentee::Status;
 use inquire::{CustomType, Select, Text};
 use rusqlite::{params, Connection, Result};
 
@@ -38,21 +38,6 @@ fn select_status() -> Result<Status, MenteeError> {
 
 impl MenteeService {
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
-        let mentees_sql = format!(
-            "CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            calls INTEGER,
-            gross INTEGER NOT NULL,
-            net INTEGER NOT NULL,
-            status TEXT NOT NULL CHECK(status IN ('archived', 'cold', 'warm', 'hot')),
-            payment_day INTEGER NOT NULL CHECK(payment_day BETWEEN 1 AND 31),
-            notes TEXT)",
-            constants::MENTEES_TABLE
-        );
-
-        conn.borrow().execute(&mentees_sql, ())?;
-
         Ok(Self { conn })
     }
 

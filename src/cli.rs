@@ -4,10 +4,10 @@ use colored::Colorize;
 
 use crate::{
     error::MenteeError,
-    mentee::Status,
     mentorship_service::mentee_service::Mentee,
     models::{
-        call::CallWithMenteeName, payment::PaymentWithMenteeName, video::VideoWithMenteeName,
+        call::CallWithMenteeName, mentee::Status, payment::PaymentWithMenteeName,
+        video::VideoWithMenteeName,
     },
 };
 

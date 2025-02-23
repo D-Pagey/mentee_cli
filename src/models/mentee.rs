@@ -39,6 +39,25 @@ impl Status {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Mentee {
+    pub name: String,
+    pub calls: u32,
+    pub status: Status,
+    pub gross: u32,
+    pub net: u32,
+    pub payment_day: u32,
+    pub notes: Option<String>,
+}
+
+pub struct MenteeWithCounts {
+    pub mentee: Mentee,
+    pub call_count: i64,
+    pub payment_count: i64,
+    pub video_count: i64,
+    pub remaining_calls: i64,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

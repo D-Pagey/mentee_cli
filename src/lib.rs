@@ -3,7 +3,6 @@ mod config;
 mod constants;
 mod db;
 mod error;
-mod mentee;
 pub mod mentorship_service;
 mod models;
 mod repositories;
@@ -19,10 +18,11 @@ use config::Config;
 use db::connection;
 use db::migrations;
 use error::MenteeError;
-use mentee::Status;
 use mentorship_service::MentorshipService;
+use models::mentee::Status;
 use rusqlite::Result;
 use services::CallService;
+use services::MenteeService;
 use services::PaymentService;
 use services::VideoService;
 use utils::{clap_validate_day, clap_validate_name};
@@ -162,6 +162,7 @@ pub fn run() -> Result<(), MenteeError> {
     migrations::run_migrations(&conn).expect("Failed to run database migrations");
 
     let call_service = CallService::new(&conn);
+    let mentee_service = MenteeService::new(&conn);
     let payment_service = PaymentService::new(&conn);
     let video_service = VideoService::new(&conn);
     let mentorship_service = MentorshipService::new()?;
