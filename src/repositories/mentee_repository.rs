@@ -24,7 +24,7 @@ impl<'a> MenteeRepository<'a> {
     }
 
     // TODO: cascade deletes
-    pub fn delete_mentee_by_id(&self, id: String) -> Result<usize, rusqlite::Error> {
+    pub fn delete_mentee_by_id(&self, id: i64) -> Result<usize, rusqlite::Error> {
         let sql = format!("DELETE FROM {} WHERE id = ?1", constants::MENTEES_TABLE);
 
         self.conn.execute(&sql, params![id])

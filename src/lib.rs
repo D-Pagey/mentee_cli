@@ -216,7 +216,7 @@ pub fn run() -> Result<(), MenteeError> {
                 Err(err) => eprintln!("{err}"),
             }
         }
-        Commands::Delete { name } => match mentorship_service.mentee_service.delete_mentee(name) {
+        Commands::Delete { name } => match mentee_service.delete_mentee(name) {
             Ok(deleted) => println!("Deleted Mentee: {}", deleted),
             Err(err) => eprintln!("{err}"),
         },

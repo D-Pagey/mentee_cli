@@ -147,18 +147,6 @@ impl MenteeService {
             .map_err(MenteeError::DatabaseError)
     }
 
-    pub fn delete_mentee(&self, name: String) -> Result<usize, MenteeError> {
-        let deleted = self.conn.borrow().execute(
-            &format!(
-                "DELETE FROM {} WHERE name = :name",
-                constants::MENTEES_TABLE
-            ),
-            &[(":name", &name.to_lowercase())],
-        )?;
-
-        Ok(deleted)
-    }
-
     pub fn update_mentee_with_flags(
         &self,
         update_args: UpdateMentee,
