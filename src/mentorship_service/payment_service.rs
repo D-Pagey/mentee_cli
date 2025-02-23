@@ -1,9 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use chrono::NaiveDate;
 use inquire::{CustomType, DateSelect};
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{Connection, OptionalExtension};
 
 use crate::constants;
 use crate::error::MenteeError;
@@ -81,7 +80,6 @@ impl PaymentService {
         Ok(payments)
     }
 
-    // TODO: deduplicate this
     fn get_mentee_id(&self, name: &str) -> Result<Option<i64>, rusqlite::Error> {
         let sql = format!(
             "SELECT id FROM {} WHERE name = ? LIMIT 1",
@@ -122,74 +120,6 @@ impl PaymentService {
         match result {
             Ok(_) => Ok(format!("Payment with {name} on {date} added.")),
             Err(err) => Err(MenteeError::from(err)),
-        }
-    }
-
-    fn parse_date_from_db(date_str: &str) -> Result<NaiveDate, chrono::format::ParseError> {
-        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
-    }
-
-    pub fn update_payment(self, payment_id: u32) -> Result<String, MenteeError> {
-        let get_sql = format!("SELECT * FROM {} WHERE id = ?1", constants::PAYMENTS_TABLE);
-
-        let result = self
-            .conn
-            .borrow()
-            .query_row(&get_sql, params![payment_id], |row| {
-                Ok(Payment {
-                    id: row.get(0)?,
-                    mentee_id: row.get(1)?,
-                    date: row.get(2)?,
-                    amount: row.get(3)?,
-                    mentee_name: None,
-                })
-            });
-
-        let payment = match result {
-            Ok(payment) => payment,
-            _ => return Ok(format!("Can't find a payment with id of {}", payment_id)),
-        };
-
-        // TODO: deal with this
-        let parsed = PaymentService::parse_date_from_db(&payment.date).unwrap();
-
-        let date = DateSelect::new("Enter the date of the payment:")
-            .with_default(parsed)
-            .prompt()
-            .expect("Failed to read date")
-            .format("%Y-%m-%d")
-            .to_string();
-
-        let amount: u32 = CustomType::new("How much?")
-            .with_starting_input(&payment.amount.to_string())
-            .prompt()
-            .expect("Failed to read amount");
-
-        let update_sql = format!(
-            "UPDATE {} SET date = ?1, amount = ?2 WHERE id = ?3",
-            constants::PAYMENTS_TABLE
-        );
-
-        let result = self
-            .conn
-            .borrow()
-            .execute(&update_sql, params![date, amount, payment_id])?;
-
-        Ok(format!("{result} payment record updated"))
-    }
-
-    pub fn delete_payment(self, id: u32) -> Result<String, MenteeError> {
-        let sql = format!(
-            "DELETE FROM {} WHERE id = :payment_id",
-            constants::PAYMENTS_TABLE
-        );
-
-        let deleted = self.conn.borrow().execute(&sql, &[(":payment_id", &id)])?;
-
-        if deleted > 0 {
-            Ok(format!("Payment with id = {id} deleted."))
-        } else {
-            Ok(format!("Couldn't find payment with id of {id}"))
         }
     }
 }
