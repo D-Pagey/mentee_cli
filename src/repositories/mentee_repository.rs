@@ -23,7 +23,7 @@ impl<'a> MenteeRepository<'a> {
             .optional()
     }
 
-    pub fn add_mentee(self, mentee: Mentee) -> Result<String, rusqlite::Error> {
+    pub fn add_mentee(self, mentee: Mentee) -> Result<usize, rusqlite::Error> {
         let sql = format!(
             "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", 
             constants::MENTEES_TABLE);
@@ -35,7 +35,7 @@ impl<'a> MenteeRepository<'a> {
                 mentee.calls,
                 mentee.gross,
                 mentee.net,
-                mentee.status,
+                mentee.status.as_str(),
                 mentee.payment_day,
                 mentee.notes
             ],
