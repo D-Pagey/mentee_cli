@@ -25,7 +25,8 @@ use services::CallService;
 use services::MenteeService;
 use services::PaymentService;
 use services::VideoService;
-use utils::{clap_validate_day, clap_validate_name};
+use utils::validation::clap_validate_day;
+use utils::validation::clap_validate_name;
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
@@ -184,8 +185,8 @@ pub fn run() -> Result<(), MenteeError> {
             Ok(mentee) => display_mentee(mentee),
             Err(err) => eprintln!("{err}"),
         },
-        Commands::Add => match mentorship_service.mentee_service.add_mentee() {
-            Ok(mentee) => println!("Added Mentee: {}", mentee.name),
+        Commands::Add => match mentee_service.add_mentee() {
+            Ok(name) => println!("Added Mentee: {}", name),
             Err(err) => eprintln!("{err}"),
         },
         Commands::Update(update_args) => {

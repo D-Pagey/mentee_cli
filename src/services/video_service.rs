@@ -5,7 +5,7 @@ use crate::{
     error::MenteeError,
     models::video::{Video, VideoWithMenteeName},
     repositories::{MenteeRepository, VideoRepository},
-    utils::parse_date_from_db,
+    utils::validation::parse_date_from_db,
 };
 
 pub struct VideoService<'a> {

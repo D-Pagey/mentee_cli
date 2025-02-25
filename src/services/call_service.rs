@@ -5,7 +5,7 @@ use crate::{
     error::MenteeError,
     models::call::{Call, CallWithMenteeName},
     repositories::{mentee_repository::MenteeRepository, CallRepository},
-    utils::parse_date_from_db,
+    utils::validation::parse_date_from_db,
 };
 
 pub struct CallService<'a> {

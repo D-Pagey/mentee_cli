@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::usize;
 
 use crate::models::mentee::Status;
-use crate::utils::{inquire_validate_day, inquire_validate_name};
+use crate::utils::validation::{inquire_validate_day, inquire_validate_name};
 use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
@@ -39,60 +39,6 @@ fn select_status() -> Result<Status, MenteeError> {
 impl MenteeService {
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
         Ok(Self { conn })
-    }
-
-    pub fn add_mentee(&self) -> Result<Mentee, MenteeError> {
-        let name = Text::new("What is their name?")
-            .with_validator(inquire_validate_name)
-            .prompt()?
-            .to_lowercase();
-
-        let calls = inquire::prompt_u32("How many calls per month do they have?")?;
-        let gross = inquire::prompt_u32("What is the gross payment?")?;
-        let net = inquire::prompt_u32("What is the net payment?")?;
-        let status = select_status()?;
-        let payment_day: u32 = CustomType::new("Which day of the month do they pay?")
-            .with_validator(inquire_validate_day)
-            .prompt()?;
-        let notes = Text::new("Any notes about them?").prompt()?;
-
-        let mentee = Mentee {
-            name,
-            calls,
-            gross,
-            net,
-            status,
-            payment_day,
-            notes,
-            call_count: None,
-            payment_count: None,
-            video_count: None,
-            remaining_calls: None,
-        };
-
-        let result = self.conn.borrow().execute(
-            &format!(
-                "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                constants::MENTEES_TABLE
-            ),
-            (
-                &mentee.name,
-                &mentee.calls,
-                &mentee.gross,
-                &mentee.net,
-                Status::as_str(&mentee.status),
-                &mentee.payment_day,
-                &mentee.notes,
-            ),
-        );
-
-        match result {
-            Ok(_) => Ok(mentee),
-            Err(rusqlite::Error::SqliteFailure(ref err, _)) if err.extended_code == 2067 => {
-                Err(MenteeError::UniqueViolation(mentee.name))
-            }
-            Err(err) => Err(MenteeError::from(err)),
-        }
     }
 
     pub fn get_mentee(&self, name: String) -> Result<Mentee, MenteeError> {

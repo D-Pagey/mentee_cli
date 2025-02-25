@@ -5,7 +5,7 @@ use crate::{
     error::MenteeError,
     models::payment::PaymentWithMenteeName,
     repositories::{MenteeRepository, PaymentRepository},
-    utils::parse_date_from_db,
+    utils::validation::parse_date_from_db,
 };
 
 pub struct PaymentService<'a> {
