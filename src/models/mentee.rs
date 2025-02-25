@@ -41,6 +41,8 @@ impl Status {
 
 #[derive(Debug, Clone)]
 pub struct Mentee {
+    #[allow(dead_code)]
+    pub id: u32,
     pub name: String,
     pub calls: u32,
     pub status: Status,
@@ -50,6 +52,7 @@ pub struct Mentee {
     pub notes: Option<String>,
 }
 
+#[allow(dead_code)]
 pub struct MenteeWithCounts {
     pub mentee: Mentee,
     pub call_count: i64,

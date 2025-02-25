@@ -181,7 +181,7 @@ pub fn run() -> Result<(), MenteeError> {
                 eprintln!("{err}");
             }
         }
-        Commands::View { name } => match mentorship_service.mentee_service.get_mentee(name) {
+        Commands::View { name } => match mentee_service.get_mentee_with_counts(name) {
             Ok(mentee) => display_mentee(mentee),
             Err(err) => eprintln!("{err}"),
         },

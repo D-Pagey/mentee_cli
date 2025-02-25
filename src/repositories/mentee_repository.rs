@@ -1,6 +1,9 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
-use crate::{constants, models::mentee::Mentee};
+use crate::{
+    constants,
+    models::mentee::{Mentee, MenteeWithCounts, Status},
+};
 
 pub struct MenteeRepository<'a> {
     conn: &'a Connection,
@@ -40,6 +43,60 @@ impl<'a> MenteeRepository<'a> {
                 mentee.notes
             ],
         )
+    }
+
+    pub fn get_mentee_with_counts(
+        &self,
+        name: &String,
+    ) -> Result<MenteeWithCounts, rusqlite::Error> {
+        let sql = format!(
+            "
+            SELECT 
+                mentees.*,
+                COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
+                COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
+                COALESCE(COUNT(DISTINCT videos.id), 0) AS video_count,
+                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
+            FROM 
+                {}
+            LEFT JOIN
+                {} ON calls.mentee_id = mentees.id
+            LEFT JOIN 
+                {} ON payments.mentee_id = mentees.id
+            LEFT JOIN 
+                {} ON videos.mentee_id = mentees.id
+            WHERE 
+                name = ?
+            GROUP BY
+                mentees.id
+            ",
+            constants::MENTEES_TABLE,
+            constants::CALLS_TABLE,
+            constants::PAYMENTS_TABLE,
+            constants::VIDEOS_TABLE
+        );
+
+        self.conn.query_row(&sql, params![name], |row| {
+            let status_str: String = row.get(5)?;
+            let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
+
+            Ok(MenteeWithCounts {
+                mentee: Mentee {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    calls: row.get(2)?,
+                    gross: row.get(3)?,
+                    net: row.get(4)?,
+                    status,
+                    payment_day: row.get(6)?,
+                    notes: row.get(7)?,
+                },
+                call_count: row.get(8)?,
+                payment_count: row.get(9)?,
+                video_count: row.get(10)?,
+                remaining_calls: row.get(11)?,
+            })
+        })
     }
 
     pub fn delete_mentee_by_id(&self, id: i64) -> Result<usize, rusqlite::Error> {

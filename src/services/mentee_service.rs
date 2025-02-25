@@ -3,7 +3,7 @@ use rusqlite::Connection;
 
 use crate::{
     error::MenteeError,
-    models::mentee::Mentee,
+    models::mentee::{Mentee, MenteeWithCounts},
     repositories::MenteeRepository,
     utils::{
         ui::select_status,
@@ -38,6 +38,7 @@ impl<'a> MenteeService<'a> {
         let notes = Text::new("Any notes about them?").prompt()?;
 
         let mentee = Mentee {
+            id: 0,
             name: name.clone(),
             calls,
             gross,
@@ -55,6 +56,13 @@ impl<'a> MenteeService<'a> {
                 Err(MenteeError::UniqueViolation(name))
             }
             Err(err) => Err(MenteeError::from(err)),
+        }
+    }
+
+    pub fn get_mentee_with_counts(&self, name: String) -> Result<MenteeWithCounts, MenteeError> {
+        match self.mentee_repo.get_mentee_with_counts(&name) {
+            Ok(mentee) => Ok(mentee),
+            Err(_) => Err(MenteeError::NotFound(format!("Mentee with name {}", name))),
         }
     }
 

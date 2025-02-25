@@ -8,7 +8,7 @@ use crate::{constants, error::MenteeError};
 use crate::{CountOptions, UpdateMentee};
 
 use inquire::{CustomType, Select, Text};
-use rusqlite::{params, Connection, Result};
+use rusqlite::{Connection, Result};
 
 pub struct MenteeService {
     conn: Rc<RefCell<Connection>>,
@@ -39,58 +39,6 @@ fn select_status() -> Result<Status, MenteeError> {
 impl MenteeService {
     pub fn new(conn: Rc<RefCell<Connection>>) -> Result<Self, MenteeError> {
         Ok(Self { conn })
-    }
-
-    pub fn get_mentee(&self, name: String) -> Result<Mentee, MenteeError> {
-        let sql = format!(
-            "
-            SELECT 
-                mentees.*,
-                COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
-                COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
-                COALESCE(COUNT(DISTINCT videos.id), 0) AS video_count,
-                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
-            FROM 
-                {}
-            LEFT JOIN
-                {} ON calls.mentee_id = mentees.id
-            LEFT JOIN 
-                {} ON payments.mentee_id = mentees.id
-            LEFT JOIN 
-                {} ON videos.mentee_id = mentees.id
-            WHERE 
-                name = ?
-            GROUP BY
-                mentees.id
-            ",
-            constants::MENTEES_TABLE,
-            constants::CALLS_TABLE,
-            constants::PAYMENTS_TABLE,
-            constants::VIDEOS_TABLE
-        );
-
-        self.conn
-            .borrow()
-            .query_row(&sql, params![name], |row| {
-                let status_str: String = row.get(5)?;
-
-                let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
-
-                Ok(Mentee {
-                    name: row.get(1)?,
-                    calls: row.get(2)?,
-                    gross: row.get(3)?,
-                    net: row.get(4)?,
-                    status,
-                    payment_day: row.get(6)?,
-                    notes: row.get(7)?,
-                    call_count: row.get(8)?,
-                    payment_count: row.get(9)?,
-                    video_count: row.get(10)?,
-                    remaining_calls: row.get(11)?,
-                })
-            })
-            .map_err(MenteeError::DatabaseError)
     }
 
     pub fn update_mentee_with_flags(

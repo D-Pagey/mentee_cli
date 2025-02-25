@@ -6,7 +6,9 @@ use crate::{
     error::MenteeError,
     mentorship_service::mentee_service::Mentee,
     models::{
-        call::CallWithMenteeName, mentee::Status, payment::PaymentWithMenteeName,
+        call::CallWithMenteeName,
+        mentee::{MenteeWithCounts, Status},
+        payment::PaymentWithMenteeName,
         video::VideoWithMenteeName,
     },
 };
@@ -251,34 +253,34 @@ pub fn render_payments_table(payments: Vec<PaymentWithMenteeName>) -> Result<(),
     Ok(println!("{}", table_display))
 }
 
-pub fn display_mentee(mentee: Mentee) {
+pub fn display_mentee(mentee: MenteeWithCounts) {
     println!("\nMentee Details:");
     println!("-----------------------");
     println!(
         "Name:             {}",
-        capitalize_first_letter_of_each_word(&mentee.name)
+        capitalize_first_letter_of_each_word(&mentee.mentee.name)
     );
-    println!("Status:           {:?}", mentee.status);
+    println!("Status:           {:?}", mentee.mentee.status);
     println!(
         "Payment Day:      {}",
-        add_ordinal_suffix(mentee.payment_day)
+        add_ordinal_suffix(mentee.mentee.payment_day)
     );
 
     println!("\nPayment Details:");
     println!("-----------------------");
-    println!("Gross:            ${:.2}", mentee.gross);
-    println!("Net:              ${:.2}", mentee.net);
+    println!("Gross:            ${:.2}", mentee.mentee.gross);
+    println!("Net:              ${:.2}", mentee.mentee.net);
 
-    let net_per_call = calc_net_per_call(&mentee.net, &mentee.calls);
+    let net_per_call = calc_net_per_call(&mentee.mentee.net, &mentee.mentee.calls);
     println!("Net / Call:       ${:.2}", net_per_call);
-    println!("Total Payments:   {}", mentee.payment_count.unwrap_or(0));
+    println!("Total Payments:   {}", mentee.payment_count);
 
     println!("\nCall Details:");
     println!("-----------------------");
-    println!("Calls / Month:    {}", mentee.calls);
-    println!("Total Calls:      {}", mentee.call_count.unwrap_or(0));
-    println!("Total Videos:     {}", mentee.video_count.unwrap_or(0));
-    let remaining_calls = mentee.remaining_calls.unwrap_or(0);
+    println!("Calls / Month:    {}", mentee.mentee.calls);
+    println!("Total Calls:      {}", mentee.call_count);
+    println!("Total Videos:     {}", mentee.video_count);
+    let remaining_calls = mentee.remaining_calls;
     let remaining_calls_colored = if remaining_calls > 0 {
         remaining_calls.to_string().green()
     } else {
@@ -286,7 +288,10 @@ pub fn display_mentee(mentee: Mentee) {
     };
     println!("Remaining Calls:  {}", remaining_calls_colored);
 
-    println!("Notes:            {}", mentee.notes);
+    println!(
+        "Notes:            {}",
+        mentee.mentee.notes.unwrap_or("".to_string())
+    );
     println!();
 }
 
