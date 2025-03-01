@@ -71,7 +71,7 @@ impl<'a> PaymentRepository<'a> {
             params.push(&id_storage);
         }
 
-        sql.push_str(" ORDER BY payments.date DESC");
+        sql.push_str(" ORDER BY payments.date ASC");
 
         let mut stmt = self.conn.prepare(&sql)?;
         let payment_iter = stmt.query_map(&params[..], |row| {
