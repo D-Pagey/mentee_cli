@@ -3,7 +3,7 @@ use rusqlite::Connection;
 
 use crate::{
     error::MenteeError,
-    models::mentee::{Mentee, MenteeWithCounts},
+    models::mentee::{Mentee, MenteeSummary, MenteeWithCounts},
     repositories::MenteeRepository,
     utils::{
         ui::select_status,
@@ -56,6 +56,13 @@ impl<'a> MenteeService<'a> {
                 Err(MenteeError::UniqueViolation(name))
             }
             Err(err) => Err(MenteeError::from(err)),
+        }
+    }
+
+    pub fn get_mentees_summaries(&self, show_all: bool) -> Result<Vec<MenteeSummary>, MenteeError> {
+        match self.mentee_repo.get_all_mentees(show_all) {
+            Ok(mentees) => Ok(mentees),
+            Err(err) => Err(MenteeError::DatabaseError(err)),
         }
     }
 

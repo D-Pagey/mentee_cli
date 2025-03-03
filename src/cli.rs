@@ -4,10 +4,9 @@ use colored::Colorize;
 
 use crate::{
     error::MenteeError,
-    mentorship_service::mentee_service::Mentee,
     models::{
         call::CallWithMenteeName,
-        mentee::{MenteeWithCounts, Status},
+        mentee::{MenteeSummary, MenteeWithCounts, Status},
         payment::PaymentWithMenteeName,
         video::VideoWithMenteeName,
     },
@@ -48,27 +47,24 @@ fn capitalize_first_letter_of_each_word(s: &str) -> String {
         .join(" ") // Join words with a space
 }
 
-pub fn format_mentees(mentees: Vec<Mentee>) -> Vec<Vec<String>> {
+pub fn format_mentees(mentees: Vec<MenteeSummary>) -> Vec<Vec<String>> {
     let rows: Vec<Vec<String>> = mentees
         .into_iter()
         .map(|mentee| {
-            let remaining_calls = mentee
-                .remaining_calls
-                .map(|count| {
-                    if count > 0 {
-                        format!("{}", count.to_string().green())
-                    } else {
-                        format!("{}", count.to_string().red())
-                    }
-                })
-                .unwrap_or_else(|| "".to_string());
+            let remaining_calls: String;
+
+            if mentee.remaining_calls > 0 {
+                remaining_calls = format!("{}", mentee.remaining_calls.to_string().green())
+            } else {
+                remaining_calls = format!("{}", mentee.remaining_calls.to_string().red())
+            }
 
             vec![
                 capitalize_first_letter_of_each_word(&mentee.name),
-                mentee.calls.to_string(),
+                mentee.calls_per_month.to_string(),
                 remaining_calls,
                 capitalize_first_letter_of_each_word(Status::as_str(&mentee.status)),
-                mentee.notes,
+                mentee.notes.unwrap_or("".to_string()),
             ]
         })
         .collect();
@@ -139,7 +135,7 @@ pub fn format_payments(payments: Vec<PaymentWithMenteeName>) -> Vec<Vec<String>>
     rows
 }
 
-pub fn render_mentees_table(mentees: Vec<Mentee>) -> Result<(), MenteeError> {
+pub fn render_mentees_table(mentees: Vec<MenteeSummary>) -> Result<(), MenteeError> {
     let rows = format_mentees(mentees);
 
     let cell_rows: Vec<Vec<cli_table::CellStruct>> = rows
@@ -301,30 +297,21 @@ mod tests {
 
     #[test]
     fn test_format_mentees() {
-        let mentees = vec![Mentee {
+        let mentees = vec![MenteeSummary {
             name: "john doe".to_string(),
-            calls: 10,
-            gross: 1000,
-            net: 900,
+            calls_per_month: 2,
+            remaining_calls: 0,
             status: Status::Warm,
-            payment_day: 5,
-            notes: "CET timezone".to_string(),
-            call_count: Some(10),
-            payment_count: Some(0),
-            video_count: Some(0),
-            remaining_calls: Some(0),
+            notes: Some("CET timezone".to_string()),
         }];
 
         let rows = format_mentees(mentees);
 
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0][0], "John Doe");
-        assert_eq!(rows[0][1], "10");
-        assert_eq!(rows[0][2], "1000");
-        assert_eq!(rows[0][3], "900");
-        assert_eq!(rows[0][4], "90");
+        assert_eq!(rows[0][1], "2");
+        assert_eq!(rows[0][2], "0");
         assert_eq!(rows[0][5], "Warm");
-        assert_eq!(rows[0][6], "5th");
         assert_eq!(rows[0][7], "CET timezone");
     }
 

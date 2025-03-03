@@ -172,10 +172,8 @@ pub fn run() -> Result<(), MenteeError> {
 
     match cli.command {
         Commands::List { all } => {
-            // TODO: change to helper method in mentorship service
-            if let Err(err) = mentorship_service
-                .mentee_service
-                .get_all_mentees(all)
+            if let Err(err) = mentee_service
+                .get_mentees_summaries(all)
                 .and_then(render_mentees_table)
             {
                 eprintln!("{err}");

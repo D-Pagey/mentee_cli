@@ -14,20 +14,6 @@ pub struct MenteeService {
     conn: Rc<RefCell<Connection>>,
 }
 
-pub struct Mentee {
-    pub name: String,
-    pub calls: u32,
-    pub status: Status,
-    pub gross: u32,
-    pub net: u32,
-    pub payment_day: u32,
-    pub notes: String,
-    pub call_count: Option<i64>,
-    pub payment_count: Option<i64>,
-    pub video_count: Option<i64>,
-    pub remaining_calls: Option<i64>,
-}
-
 fn select_status() -> Result<Status, MenteeError> {
     // generate options from enum variants
     let options = Status::variants();
@@ -214,74 +200,6 @@ impl MenteeService {
                 new_name.as_deref().unwrap_or(&name)
             ))
         }
-    }
-
-    pub fn get_all_mentees(&self, show_all: bool) -> Result<Vec<Mentee>, MenteeError> {
-        let mut sql = format!(
-            "
-            SELECT 
-                mentees.*,
-                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
-            FROM 
-                {}
-            LEFT JOIN
-                {} ON calls.mentee_id = mentees.id
-            LEFT JOIN 
-                {} ON payments.mentee_id = mentees.id
-            ",
-            constants::MENTEES_TABLE,
-            constants::CALLS_TABLE,
-            constants::PAYMENTS_TABLE
-        );
-
-        if !show_all {
-            sql = format!("{} WHERE status != 'archived'", sql)
-        }
-
-        sql = format!(
-            "{} 
-            GROUP BY
-                mentees.id
-            ORDER BY 
-                CASE status 
-                    WHEN 'hot' THEN 1
-                    WHEN 'warm' THEN 2
-                    WHEN 'cold' THEN 3
-                    ELSE 4
-                END
-            ",
-            sql
-        );
-
-        let binding = self.conn.borrow();
-        let mut stmt = binding.prepare(&sql)?;
-        let mentee_iter = stmt.query_map([], |row| {
-            let status_str: String = row.get(5)?;
-
-            let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
-
-            Ok(Mentee {
-                name: row.get(1)?,
-                calls: row.get(2)?,
-                gross: row.get(3)?,
-                net: row.get(4)?,
-                status,
-                payment_day: row.get(6)?,
-                notes: row.get(7)?,
-                remaining_calls: row.get(8)?,
-                video_count: None,
-                payment_count: None,
-                call_count: None,
-            })
-        })?;
-
-        let mut mentees: Vec<Mentee> = Vec::new();
-
-        for mentee_result in mentee_iter {
-            mentees.push(mentee_result?)
-        }
-
-        Ok(mentees)
     }
 
     pub fn get_mentee_count(&self, count: Option<CountOptions>) -> Result<String, MenteeError> {

@@ -2,7 +2,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::{
     constants,
-    models::mentee::{Mentee, MenteeWithCounts, Status},
+    models::mentee::{Mentee, MenteeSummary, MenteeWithCounts, Status},
 };
 
 pub struct MenteeRepository<'a> {
@@ -97,6 +97,72 @@ impl<'a> MenteeRepository<'a> {
                 remaining_calls: row.get(11)?,
             })
         })
+    }
+
+    pub fn get_all_mentees(&self, show_all: bool) -> Result<Vec<MenteeSummary>, rusqlite::Error> {
+        let mut sql = format!(
+            "
+            SELECT 
+                mentees.id,
+                mentees.name,
+                mentees.calls,
+                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls,
+                mentees.status,
+                mentees.notes
+            FROM 
+                {}
+            LEFT JOIN
+                {} ON calls.mentee_id = mentees.id
+            LEFT JOIN 
+                {} ON payments.mentee_id = mentees.id
+            ",
+            constants::MENTEES_TABLE,
+            constants::CALLS_TABLE,
+            constants::PAYMENTS_TABLE
+        );
+
+        if !show_all {
+            sql = format!("{} WHERE status != 'archived'", sql)
+        }
+
+        sql = format!(
+            "{} 
+            GROUP BY
+                mentees.id
+            ORDER BY 
+                CASE status 
+                    WHEN 'hot' THEN 1
+                    WHEN 'warm' THEN 2
+                    WHEN 'cold' THEN 3
+                    ELSE 4
+                END
+            ",
+            sql
+        );
+
+        let mut stmt = self.conn.prepare(&sql)?;
+
+        let mentee_iter = stmt.query_map([], |row| {
+            let status_str: String = row.get(4)?;
+
+            let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
+
+            Ok(MenteeSummary {
+                name: row.get(1)?,
+                calls_per_month: row.get(2)?,
+                remaining_calls: row.get(3)?,
+                status,
+                notes: row.get(5)?,
+            })
+        })?;
+
+        let mut mentees: Vec<MenteeSummary> = Vec::new();
+
+        for mentee_result in mentee_iter {
+            mentees.push(mentee_result?)
+        }
+
+        Ok(mentees)
     }
 
     pub fn delete_mentee_by_id(&self, id: i64) -> Result<usize, rusqlite::Error> {

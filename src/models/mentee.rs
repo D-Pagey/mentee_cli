@@ -52,13 +52,21 @@ pub struct Mentee {
     pub notes: Option<String>,
 }
 
-#[allow(dead_code)]
 pub struct MenteeWithCounts {
     pub mentee: Mentee,
     pub call_count: i64,
     pub payment_count: i64,
     pub video_count: i64,
     pub remaining_calls: i64,
+}
+
+#[derive(Debug, Clone)]
+pub struct MenteeSummary {
+    pub name: String,
+    pub calls_per_month: u32,
+    pub remaining_calls: i32,
+    pub status: Status,
+    pub notes: Option<String>,
 }
 
 #[cfg(test)]
