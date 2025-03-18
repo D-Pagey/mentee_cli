@@ -219,12 +219,10 @@ pub fn run() -> Result<(), MenteeError> {
             Ok(deleted) => println!("Deleted Mentee: {}", deleted),
             Err(err) => eprintln!("{err}"),
         },
-        Commands::Count { column } => {
-            match mentorship_service.mentee_service.get_mentee_count(column) {
-                Ok(result) => println!("{result}"),
-                Err(err) => eprintln!("{err}"),
-            }
-        }
+        Commands::Count { column } => match mentee_service.get_mentee_count(column) {
+            Ok(result) => println!("{result}"),
+            Err(err) => eprintln!("{err}"),
+        },
         Commands::Calls { action } => match action {
             CallActions::List { name } => match call_service.get_all_calls(name) {
                 Ok(calls) => render_calls_table(calls)?,

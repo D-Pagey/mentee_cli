@@ -4,8 +4,8 @@ use std::usize;
 
 use crate::models::mentee::Status;
 use crate::utils::validation::{inquire_validate_day, inquire_validate_name};
+use crate::UpdateMentee;
 use crate::{constants, error::MenteeError};
-use crate::{CountOptions, UpdateMentee};
 
 use inquire::{CustomType, Select, Text};
 use rusqlite::{Connection, Result};
@@ -200,38 +200,5 @@ impl MenteeService {
                 new_name.as_deref().unwrap_or(&name)
             ))
         }
-    }
-
-    pub fn get_mentee_count(&self, count: Option<CountOptions>) -> Result<String, MenteeError> {
-        let (mut sql, message) = match count {
-            Some(CountOptions::Calls) => (
-                "SELECT SUM(calls) FROM mentees".to_string(),
-                "Number of calls: ",
-            ),
-            Some(CountOptions::Gross) => ("SELECT SUM(gross) FROM mentees".to_string(), "Gross $"),
-            Some(CountOptions::Net) => ("SELECT SUM(net) FROM mentees".to_string(), "Net $"),
-            Some(CountOptions::NetPerCall) => (
-                "SELECT CAST(AVG(net_per_call) AS INTEGER) AS average_net_per_call
-                    FROM (
-                        SELECT CASE 
-                            WHEN calls > 0 THEN net / calls 
-                            ELSE net 
-                            END AS net_per_call
-                    FROM mentees
-                    );"
-                .to_string(),
-                "Average net amount per call $",
-            ),
-            _ => (
-                "SELECT COUNT(*) FROM mentees".to_string(),
-                "Number of mentees: ",
-            ),
-        };
-
-        sql = format!("{} WHERE status != 'archived'", sql);
-
-        let result: i64 = self.conn.borrow().query_row(&sql, [], |row| row.get(0))?;
-
-        Ok(format!("{}{}", message, result))
     }
 }

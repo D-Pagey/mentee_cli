@@ -3,6 +3,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use crate::{
     constants,
     models::mentee::{Mentee, MenteeSummary, MenteeWithCounts, Status},
+    CountOptions,
 };
 
 pub struct MenteeRepository<'a> {
@@ -169,5 +170,30 @@ impl<'a> MenteeRepository<'a> {
         let sql = format!("DELETE FROM {} WHERE id = ?1", constants::MENTEES_TABLE);
 
         self.conn.execute(&sql, params![id])
+    }
+
+    pub fn get_mentee_count(
+        &self,
+        count_type: Option<CountOptions>,
+    ) -> Result<i64, rusqlite::Error> {
+        let sql = match count_type {
+            Some(CountOptions::Calls) => "SELECT SUM(calls) FROM mentees",
+            Some(CountOptions::Gross) => "SELECT SUM(gross) FROM mentees",
+            Some(CountOptions::Net) => "SELECT SUM(net) FROM mentees",
+            Some(CountOptions::NetPerCall) => {
+                "SELECT CAST(AVG(net_per_call) AS INTEGER) AS average_net_per_call
+                    FROM (
+                        SELECT CASE 
+                            WHEN calls > 0 THEN net / calls 
+                            ELSE net 
+                            END AS net_per_call
+                    FROM mentees
+                )"
+            }
+            _ => "SELECT COUNT(*) FROM mentees",
+        };
+
+        let sql = format!("{} WHERE status != 'archived'", sql);
+        self.conn.query_row(&sql, [], |row| row.get(0))
     }
 }

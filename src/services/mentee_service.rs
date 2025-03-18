@@ -9,6 +9,7 @@ use crate::{
         ui::select_status,
         validation::{inquire_validate_day, inquire_validate_name},
     },
+    CountOptions,
 };
 
 pub struct MenteeService<'a> {
@@ -83,5 +84,19 @@ impl<'a> MenteeService<'a> {
             Ok(_) => Ok(format!("Deleted mentee {}", name)),
             Err(err) => Err(MenteeError::DatabaseError(err)),
         }
+    }
+
+    pub fn get_mentee_count(&self, count: Option<CountOptions>) -> Result<String, MenteeError> {
+        let message = match count {
+            Some(CountOptions::Calls) => "Number of calls: ",
+            Some(CountOptions::Gross) => "Gross $",
+            Some(CountOptions::Net) => "Net $",
+            Some(CountOptions::NetPerCall) => "Average net amount per call $",
+            _ => "Number of mentees: ",
+        };
+
+        let count_value = self.mentee_repo.get_mentee_count(count)?;
+
+        Ok(format!("{}{}", message, count_value))
     }
 }
