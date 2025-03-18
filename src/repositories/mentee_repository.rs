@@ -3,7 +3,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use crate::{
     constants,
     models::mentee::{Mentee, MenteeSummary, MenteeWithCounts, Status},
-    CountOptions,
+    CountOptions, UpdateMentee,
 };
 
 pub struct MenteeRepository<'a> {
@@ -195,5 +195,66 @@ impl<'a> MenteeRepository<'a> {
 
         let sql = format!("{} WHERE status != 'archived'", sql);
         self.conn.query_row(&sql, [], |row| row.get(0))
+    }
+
+    pub fn update_mentee(&self, update_args: &UpdateMentee) -> Result<usize, rusqlite::Error> {
+        let mut updates = Vec::new();
+        let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
+        if let Some(new_name) = &update_args.new_name {
+            updates.push("name = ?");
+            params.push(Box::new(new_name));
+        }
+
+        if let Some(calls) = update_args.calls {
+            updates.push("calls = ?");
+            params.push(Box::new(calls));
+        }
+
+        if let Some(gross) = update_args.gross {
+            updates.push("gross = ?");
+            params.push(Box::new(gross));
+        }
+
+        if let Some(net) = update_args.net {
+            updates.push("net = ?");
+            params.push(Box::new(net));
+        }
+
+        if let Some(status) = update_args.status.as_ref() {
+            updates.push("status = ?");
+            params.push(Box::new(status.as_str()));
+        }
+
+        if let Some(payment_day) = update_args.payment_day {
+            updates.push("payment_day = ?");
+            params.push(Box::new(payment_day));
+        }
+
+        if let Some(notes) = update_args.notes.as_ref() {
+            updates.push("notes = ?");
+            params.push(Box::new(notes));
+        }
+
+        if updates.is_empty() {
+            return Ok(0); // No updates to make
+        }
+
+        // Join updates into a single SQL statement
+        let updates_str = updates.join(", ");
+
+        let sql = format!(
+            "UPDATE {} SET {} WHERE name = ?",
+            crate::constants::MENTEES_TABLE,
+            updates_str
+        );
+
+        let mut params_refs: Vec<&dyn rusqlite::ToSql> =
+            params.iter().map(|s| s.as_ref()).collect();
+
+        // Append mentee name to params (for WHERE clause)
+        params_refs.push(&update_args.name);
+
+        self.conn.execute(&sql, params_refs.as_slice())
     }
 }

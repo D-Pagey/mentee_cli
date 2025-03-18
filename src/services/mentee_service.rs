@@ -9,7 +9,7 @@ use crate::{
         ui::select_status,
         validation::{inquire_validate_day, inquire_validate_name},
     },
-    CountOptions,
+    CountOptions, UpdateMentee,
 };
 
 pub struct MenteeService<'a> {
@@ -98,5 +98,31 @@ impl<'a> MenteeService<'a> {
         let count_value = self.mentee_repo.get_mentee_count(count)?;
 
         Ok(format!("{}{}", message, count_value))
+    }
+
+    pub fn update_mentee(&self, update_args: UpdateMentee) -> Result<String, MenteeError> {
+        if update_args.new_name.is_none()
+            && update_args.calls.is_none()
+            && update_args.gross.is_none()
+            && update_args.net.is_none()
+            && update_args.status.is_none()
+            && update_args.payment_day.is_none()
+            && update_args.notes.is_none()
+        {
+            return Err(MenteeError::InvalidInput(
+                "At least one field must be updated.".to_string(),
+            ));
+        }
+
+        let rows_affected = self.mentee_repo.update_mentee(&update_args)?;
+
+        if rows_affected == 0 {
+            Err(MenteeError::NotFound(update_args.name))
+        } else {
+            Ok(format!(
+                "{} was updated",
+                update_args.new_name.as_deref().unwrap_or(&update_args.name)
+            ))
+        }
     }
 }

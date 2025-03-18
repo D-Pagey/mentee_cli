@@ -3,7 +3,6 @@ mod config;
 mod constants;
 mod db;
 mod error;
-pub mod mentorship_service;
 mod models;
 mod repositories;
 mod services;
@@ -18,7 +17,6 @@ use config::Config;
 use db::connection;
 use db::migrations;
 use error::MenteeError;
-use mentorship_service::MentorshipService;
 use models::mentee::Status;
 use rusqlite::Result;
 use services::CallService;
@@ -151,10 +149,6 @@ pub enum CountOptions {
     NetPerCall,
 }
 
-fn as_debug<T: std::fmt::Debug>(option: &Option<T>) -> Option<&dyn std::fmt::Debug> {
-    option.as_ref().map(|value| value as &dyn std::fmt::Debug)
-}
-
 pub fn run() -> Result<(), MenteeError> {
     let config = Config::new()?;
     let conn =
@@ -166,7 +160,6 @@ pub fn run() -> Result<(), MenteeError> {
     let mentee_service = MenteeService::new(&conn);
     let payment_service = PaymentService::new(&conn);
     let video_service = VideoService::new(&conn);
-    let mentorship_service = MentorshipService::new()?;
 
     let cli = Cli::parse();
 
@@ -187,34 +180,10 @@ pub fn run() -> Result<(), MenteeError> {
             Ok(name) => println!("Added Mentee: {}", name),
             Err(err) => eprintln!("{err}"),
         },
-        Commands::Update(update_args) => {
-            let has_any_flags = [
-                as_debug(&update_args.new_name),
-                as_debug(&update_args.calls),
-                as_debug(&update_args.gross),
-                as_debug(&update_args.net),
-                as_debug(&update_args.status),
-                as_debug(&update_args.payment_day),
-                as_debug(&update_args.notes),
-            ]
-            .iter()
-            .any(Option::is_some);
-
-            let result = if has_any_flags {
-                mentorship_service
-                    .mentee_service
-                    .update_mentee_with_flags(update_args)
-            } else {
-                mentorship_service
-                    .mentee_service
-                    .update_mentee_interactive(update_args.name)
-            };
-
-            match result {
-                Ok(message) => println!("{}", message),
-                Err(err) => eprintln!("{err}"),
-            }
-        }
+        Commands::Update(update_args) => match mentee_service.update_mentee(update_args) {
+            Ok(message) => println!("{}", message),
+            Err(err) => eprintln!("{err}"),
+        },
         Commands::Delete { name } => match mentee_service.delete_mentee(name) {
             Ok(deleted) => println!("Deleted Mentee: {}", deleted),
             Err(err) => eprintln!("{err}"),
