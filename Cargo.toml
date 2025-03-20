@@ -1,6 +1,6 @@
 [package]
 name = "mentees"
-version = "1.2.8"
+version = "1.2.9"
 edition = "2021"
 description = "CLI to manage mentees"
 
