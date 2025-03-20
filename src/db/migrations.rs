@@ -24,7 +24,7 @@ pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
             mentee_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             notes TEXT,
-            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
+            FOREIGN KEY (mentee_id) REFERENCES {} (id) ON DELETE CASCADE)",
         constants::CALLS_TABLE,
         constants::MENTEES_TABLE
     );
@@ -38,7 +38,7 @@ pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
             date TEXT NOT NULL,
             length INTEGER NOT NULL,
             notes TEXT,
-            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
+            FOREIGN KEY (mentee_id) REFERENCES {} (id) ON DELETE CASCADE)",
         constants::VIDEOS_TABLE,
         constants::MENTEES_TABLE
     );
@@ -51,7 +51,7 @@ pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
             mentee_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             amount INTEGER NOT NULL,
-            FOREIGN KEY (mentee_id) REFERENCES {} (id))",
+            FOREIGN KEY (mentee_id) REFERENCES {} (id) ON DELETE CASCADE)",
         constants::PAYMENTS_TABLE,
         constants::MENTEES_TABLE
     );
