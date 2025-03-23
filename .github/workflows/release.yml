@@ -54,21 +54,14 @@ jobs:
 
     - name: Commit updated Cargo.toml to main
       run: |
-        git fetch origin main
-        git checkout main
-
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-
-        # Merge the detached HEAD commit (if needed)
-        git merge --ff-only $GITHUB_SHA || echo "Already up-to-date"
 
         # Stage and commit changes
         git add Cargo.toml Cargo.lock
         git commit -m "Update Cargo.toml and Cargo.lock to version ${{ env.version }}"
 
-        # Push changes back to main
-        git push origin main
+        git push origin HEAD:main
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
