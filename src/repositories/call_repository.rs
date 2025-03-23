@@ -15,17 +15,19 @@ impl<'a> CallRepository<'a> {
 
     pub fn add_call(&self, call: Call) -> Result<usize, rusqlite::Error> {
         let sql = format!(
-            "INSERT INTO {} (mentee_id, date, notes) VALUES (?1, ?2, ?3)",
+            "INSERT INTO {} (mentee_id, date, notes, free_call) VALUES (?1, ?2, ?3, ?4)",
             constants::CALLS_TABLE
         );
 
-        self.conn
-            .execute(&sql, params![call.mentee_id, call.date, call.notes])
+        self.conn.execute(
+            &sql,
+            params![call.mentee_id, call.date, call.notes, call.free_call],
+        )
     }
 
     pub fn get_call_by_id(&self, id: u32) -> Result<Call, rusqlite::Error> {
         let sql = format!(
-            "SELECT id, mentee_id, date, notes FROM {} WHERE id = ?1",
+            "SELECT id, mentee_id, date, notes, free_call FROM {} WHERE id = ?1",
             constants::CALLS_TABLE
         );
 
@@ -35,6 +37,7 @@ impl<'a> CallRepository<'a> {
                 mentee_id: row.get(1)?,
                 date: row.get(2)?,
                 notes: row.get(3)?,
+                free_call: row.get(4)?,
             })
         })
     }
@@ -44,13 +47,14 @@ impl<'a> CallRepository<'a> {
         id: u32,
         date: String,
         notes: String,
+        free_call: bool,
     ) -> Result<usize, rusqlite::Error> {
         let sql = format!(
-            "UPDATE {} SET date = ?1, notes = ?2 WHERE id = ?3",
+            "UPDATE {} SET date = ?1, notes = ?2, free_call = ?3 WHERE id = ?4",
             constants::CALLS_TABLE
         );
 
-        self.conn.execute(&sql, params![date, notes, id])
+        self.conn.execute(&sql, params![date, notes, free_call, id])
     }
 
     pub fn get_all_calls(
@@ -63,7 +67,8 @@ impl<'a> CallRepository<'a> {
                 calls.id AS call_id,
                 mentees.name AS mentee_name,
                 calls.date,
-                calls.notes
+                calls.notes,
+                calls.free_call
             FROM 
                 {}
             JOIN 
@@ -93,6 +98,7 @@ impl<'a> CallRepository<'a> {
                 mentee_name: row.get(1)?,
                 date: row.get(2)?,
                 notes: row.get(3)?,
+                free_call: row.get(4)?,
             })
         })?;
 

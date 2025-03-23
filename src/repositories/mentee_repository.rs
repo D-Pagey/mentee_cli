@@ -57,7 +57,7 @@ impl<'a> MenteeRepository<'a> {
                 COALESCE(COUNT(DISTINCT calls.id), 0) AS call_count, 
                 COALESCE(COUNT(DISTINCT payments.id), 0) AS payment_count,
                 COALESCE(COUNT(DISTINCT videos.id), 0) AS video_count,
-                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls
+                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(SUM(CASE WHEN calls.free_call = 0 THEN 1 ELSE 0 END), 0) AS remaining_calls
             FROM 
                 {}
             LEFT JOIN
