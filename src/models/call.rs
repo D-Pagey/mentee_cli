@@ -4,6 +4,7 @@ pub struct Call {
     pub mentee_id: i64,
     pub date: String,
     pub notes: Option<String>,
+    pub free_call: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -12,4 +13,5 @@ pub struct CallWithMenteeName {
     pub mentee_name: String,
     pub date: String,
     pub notes: Option<String>,
+    pub free_call: bool,
 }

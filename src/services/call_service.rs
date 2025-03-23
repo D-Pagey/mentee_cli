@@ -1,4 +1,4 @@
-use inquire::{DateSelect, Text};
+use inquire::{DateSelect, Select, Text};
 use rusqlite::Connection;
 
 use crate::{
@@ -37,11 +37,18 @@ impl<'a> CallService<'a> {
             .prompt()
             .expect("Failed to read notes");
 
+        let is_free = Select::new("Was this a free call?", vec!["No", "Yes"])
+            .with_starting_cursor(0) // "No" is selected by default
+            .prompt()
+            .map(|answer| answer == "Yes")
+            .unwrap_or(false); // default to false if input fails
+
         let result = self.call_repo.add_call(Call {
             id: 0,
             mentee_id,
             date: date.clone(),
             notes: Some(notes),
+            free_call: is_free,
         });
 
         match result {
@@ -93,7 +100,15 @@ impl<'a> CallService<'a> {
             .prompt()
             .expect("Failed to read notes");
 
-        let updated_rows = self.call_repo.update_call(call.id, date, notes)?;
+        let default_cursor = if call.free_call { 1 } else { 0 };
+
+        let is_free = Select::new("Was this a free call?", vec!["No", "Yes"])
+            .with_starting_cursor(default_cursor) // "No" is selected by default
+            .prompt()
+            .map(|answer| answer == "Yes")
+            .unwrap_or(call.free_call);
+
+        let updated_rows = self.call_repo.update_call(call.id, date, notes, is_free)?;
 
         Ok(format!("{updated_rows} call record updated"))
     }

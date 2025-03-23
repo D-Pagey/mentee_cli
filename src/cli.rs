@@ -109,6 +109,7 @@ pub fn format_calls(calls: Vec<CallWithMenteeName>) -> Vec<Vec<String>> {
                 capitalize_first_letter_of_each_word(&call.mentee_name),
                 formatted_date,
                 call.notes.unwrap_or("".to_string()),
+                if call.free_call { "Yes" } else { "No" }.to_string(),
             ]
         })
         .collect();
@@ -183,6 +184,7 @@ pub fn render_calls_table(calls: Vec<CallWithMenteeName>) -> Result<(), MenteeEr
             "Mentee".cell().bold(true),
             "Date".cell().bold(true),
             "Notes".cell().bold(true),
+            "Free Call".cell().bold(true),
         ])
         .foreground_color(Some(Color::Yellow))
         .bold(true);

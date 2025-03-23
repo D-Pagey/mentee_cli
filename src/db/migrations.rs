@@ -2,6 +2,23 @@ use rusqlite::Connection;
 
 use crate::constants;
 
+pub fn migrate_add_free_call_column(conn: &Connection) -> rusqlite::Result<()> {
+    let mut stmt = conn.prepare("PRAGMA table_info(calls);")?;
+    let column_exists = stmt
+        .query_map([], |row| row.get::<_, String>(1))?
+        .filter_map(Result::ok)
+        .any(|col_name| col_name == "free_call");
+
+    if !column_exists {
+        conn.execute(
+            "ALTER TABLE calls ADD COLUMN free_call INTEGER DEFAULT 0;",
+            [],
+        )?;
+    }
+
+    Ok(())
+}
+
 pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
     let mentees_sql = format!(
         "CREATE TABLE IF NOT EXISTS {} (
@@ -30,6 +47,8 @@ pub fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
     );
 
     conn.execute(&calls_sql, [])?;
+
+    migrate_add_free_call_column(conn)?;
 
     let videos_sql = format!(
         "CREATE TABLE IF NOT EXISTS {} (
