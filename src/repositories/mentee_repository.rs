@@ -27,6 +27,31 @@ impl<'a> MenteeRepository<'a> {
             .optional()
     }
 
+    pub fn get_mentee(&self, name: &str) -> Result<Option<Mentee>, rusqlite::Error> {
+        let sql = format!(
+            "SELECT * FROM {} WHERE name = ?1 LIMIT 1",
+            constants::MENTEES_TABLE
+        );
+
+        self.conn
+            .query_row(&sql, params![name], |row| {
+                let status_str: String = row.get(5)?;
+                let status = Status::from_str(&status_str).unwrap_or(Status::Warm);
+
+                Ok(Mentee {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    calls: row.get(2)?,
+                    gross: row.get(3)?,
+                    net: row.get(4)?,
+                    status,
+                    payment_day: row.get(6)?,
+                    notes: row.get(7)?,
+                })
+            })
+            .optional()
+    }
+
     pub fn add_mentee(&self, mentee: Mentee) -> Result<usize, rusqlite::Error> {
         let sql = format!(
             "INSERT INTO {} (name, calls, gross, net, status, payment_day, notes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", 

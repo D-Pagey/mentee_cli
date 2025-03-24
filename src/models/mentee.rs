@@ -45,9 +45,9 @@ pub struct Mentee {
     pub id: u32,
     pub name: String,
     pub calls: u32,
-    pub status: Status,
     pub gross: u32,
     pub net: u32,
+    pub status: Status,
     pub payment_day: u32,
     pub notes: Option<String>,
 }

@@ -16,7 +16,7 @@ impl<'a> PaymentRepository<'a> {
 
     pub fn add_payment(
         &self,
-        mentee_id: i64,
+        mentee_id: u32,
         date: String,
         amount: u32,
     ) -> Result<usize, rusqlite::Error> {
