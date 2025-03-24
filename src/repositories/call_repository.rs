@@ -89,7 +89,7 @@ impl<'a> CallRepository<'a> {
             params.push(&id_storage);
         }
 
-        sql.push_str(" ORDER BY calls.date DESC");
+        sql.push_str(" ORDER BY calls.date ASC");
 
         let mut stmt = self.conn.prepare(&sql)?;
         let call_iter = stmt.query_map(&params[..], |row| {

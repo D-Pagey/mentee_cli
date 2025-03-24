@@ -71,7 +71,7 @@ impl<'a> VideoRepository<'a> {
             params.push(&id_storage);
         }
 
-        sql.push_str(" ORDER BY videos.date DESC");
+        sql.push_str(" ORDER BY videos.date ASC");
 
         let mut stmt = self.conn.prepare(&sql)?;
         let video_iter = stmt.query_map(&params[..], |row| {
