@@ -28,7 +28,13 @@ use utils::validation::clap_validate_name;
 
 /// CLI to manage state of mentees
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None, name = "Mentee CLI")]
+#[command(version, about, long_about = None, name = "Mentee CLI", before_help = r#"
+    __  __            _                 
+   |  \/  | ___ _ __ | |_ ___  ___  ___ 
+   | |\/| |/ _ \ '_ \| __/ _ \/ _ \/ __|
+   | |  | |  __/ | | | ||  __/  __/\__ \
+   |_|  |_|\___|_| |_|\__\___|\___||___/
+"#)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
