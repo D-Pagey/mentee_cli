@@ -8,7 +8,7 @@
 
 It supports full CRUD operations on mentees, as well as their associated calls, video analyses, and payments. This tool is ideal for coaches, mentors, or anyone managing ongoing client or mentee relationships.
 
-![CLI Screenshot](./images/cli-screenshot.png)
+![Mentee CLI demo](./images/demo.gif)
 
 ---
 
