@@ -1,3 +1,7 @@
+<a href="https://mentorcruise.com/mentor/danpage/">
+<img src="https://cdn.mentorcruise.com/img/banner/navy-sm.svg" width="240" alt="MentorCruise">
+</a>
+
 # Mentee CLI
 
 **Mentee CLI** is a lightweight, Rust-powered command-line interface for managing your mentees and tracking interactions with them — all backed by a local SQLite database.
@@ -54,7 +58,7 @@ You can use the `count` command to quickly see high-level metrics like:
 Example:
 
 ```bash
-mentees count --column net
+mentees count gross
 ```
 
 ## 🛠️ Installation
