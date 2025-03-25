@@ -68,10 +68,11 @@ impl<'a> MenteeService<'a> {
     }
 
     pub fn get_mentee_with_counts(&self, name: String) -> Result<MenteeWithCounts, MenteeError> {
-        match self.mentee_repo.get_mentee_with_counts(&name) {
-            Ok(mentee) => Ok(mentee),
-            Err(_) => Err(MenteeError::NotFound(format!("Mentee with name {}", name))),
-        }
+        let normalised_name = name.to_lowercase();
+
+        self.mentee_repo
+            .get_mentee_with_counts(&normalised_name)
+            .map_err(|_| MenteeError::NotFound(format!("Mentee with name {}", name)))
     }
 
     // TODO: handle cascade deletes
