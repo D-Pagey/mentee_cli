@@ -1,3 +1,4 @@
+use colored::Colorize;
 use inquire::{CustomType, DateSelect};
 use rusqlite::Connection;
 
@@ -63,7 +64,9 @@ impl<'a> PaymentService<'a> {
             .expect("Failed to read amount");
 
         match self.payment_repo.add_payment(mentee.id, date, amount) {
-            Ok(..) => Ok(format!("Payment of {amount} added for {name}")),
+            Ok(..) => Ok(format!("Payment of {amount} added for {name}")
+                .green()
+                .to_string()),
             Err(err) => Err(MenteeError::DatabaseError(err)),
         }
     }

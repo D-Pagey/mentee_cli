@@ -1,3 +1,4 @@
+use colored::Colorize;
 use inquire::{CustomType, DateSelect, Text};
 use rusqlite::Connection;
 
@@ -49,7 +50,9 @@ impl<'a> VideoService<'a> {
         });
 
         match result {
-            Ok(_) => Ok(format!("Video log with {name} on {date} added.")),
+            Ok(_) => Ok(format!("Video log with {name} on {date} added.")
+                .green()
+                .to_string()),
             Err(err) => Err(MenteeError::from(err)),
         }
     }

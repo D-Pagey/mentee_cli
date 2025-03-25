@@ -1,3 +1,4 @@
+use colored::Colorize;
 use inquire::{CustomType, Text};
 use rusqlite::Connection;
 
@@ -75,7 +76,6 @@ impl<'a> MenteeService<'a> {
             .map_err(|_| MenteeError::NotFound(format!("Mentee with name {}", name)))
     }
 
-    // TODO: handle cascade deletes
     pub fn delete_mentee(&self, name: String) -> Result<String, MenteeError> {
         let mentee_id = self.mentee_repo.get_mentee_id(&name)?.ok_or_else(|| {
             MenteeError::NotFound(format!("No mentee found with name '{}'", name))
@@ -110,9 +110,10 @@ impl<'a> MenteeService<'a> {
             && update_args.payment_day.is_none()
             && update_args.notes.is_none()
         {
-            return Err(MenteeError::InvalidInput(
-                "At least one field must be updated.".to_string(),
-            ));
+            return Err(MenteeError::InvalidInput(format!(
+                "{}",
+                "Please pass one field to update e.g. --gross 500".red(),
+            )));
         }
 
         let rows_affected = self.mentee_repo.update_mentee(&update_args)?;
