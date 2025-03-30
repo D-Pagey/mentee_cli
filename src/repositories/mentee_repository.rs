@@ -142,7 +142,13 @@ impl<'a> MenteeRepository<'a> {
                 mentees.id,
                 mentees.name,
                 mentees.calls,
-                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - COALESCE(COUNT(DISTINCT calls.id), 0) AS remaining_calls,
+
+                (mentees.calls * COALESCE(COUNT(DISTINCT payments.id), 0)) - (
+                    SELECT COUNT(*) 
+                    FROM calls 
+                    WHERE calls.mentee_id = mentees.id AND free_call = 0
+                ) AS remaining_calls,
+
                 mentees.status,
                 mentees.notes
             FROM 
