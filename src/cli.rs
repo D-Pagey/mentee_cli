@@ -271,13 +271,13 @@ pub fn display_mentee(mentee: MenteeWithCounts) {
 
     let net_per_call = calc_net_per_call(&mentee.mentee.net, &mentee.mentee.calls);
     println!("Net / Call:       ${:.2}", net_per_call);
-    println!("Total Payments:   {}", mentee.payment_count);
 
     println!("\nCall Details:");
     println!("-----------------------");
     println!("Calls / Month:    {}", mentee.mentee.calls);
     println!("Total Calls:      {}", mentee.call_count);
     println!("Total Videos:     {}", mentee.video_count);
+    println!("Total Payments:   {}", mentee.payment_count);
     let remaining_calls = mentee.remaining_calls;
     let remaining_calls_colored = if remaining_calls > 0 {
         remaining_calls.to_string().green()
